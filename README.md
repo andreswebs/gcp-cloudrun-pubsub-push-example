@@ -6,9 +6,9 @@ MongoDB Atlas as a database:
 ![GCP Cloud Run PubSub Example](docs/diagrams/gcp-cloud-run-pubsun-example.png "example")
 
 The application consists of a publisher (`app: API`) and a subscriber
-(`app: DB`), which publish and read from a topic (`api-events`). The `app`
-components are containers in GCP Cloud Run. The DB application stores data
-received from the topic to MongoDB Atlas.
+(`app: DB`), which publish and read from a GCP Pub/Sub topic (`api-events`). The
+`app` components are containers in GCP Cloud Run. The DB application stores data
+received from the topic into MongoDB Atlas.
 
 The infrastructure is defined in the [terraform/](terraform) directory.
 
@@ -49,7 +49,9 @@ manually in the Atlas console. This is because it is not possible to create a
 free-tier cluster with the `mongodb/mongodbatlas` Terraform provider.
 
 To deploy using Atlas free-tier, the first Terraform run will fail, until a
-free-tier cluster is created manually.
+free-tier cluster is created manually. The `mongodb_atlas_host` and
+`mongodb_atlas_pubkey` values can be obtained after the cluster is created, and
+then a second TF run is needed to complete the creation.
 
 ## TODO:
 

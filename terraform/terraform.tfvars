@@ -1,9 +1,5 @@
 project = "personal-333504"
 
-ssh_whitelist = [
-  "138.186.172.214/32"
-]
-
 mongodb_atlas_org_id = "62dc0de1c4c095490cd5cae1"
 mongodb_atlas_pubkey = "duakqklt"
 
