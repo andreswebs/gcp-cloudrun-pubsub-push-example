@@ -21,18 +21,6 @@ variable "zone" {
   default     = "us-central1-c"
 }
 
-variable "vm_type" {
-  type        = string
-  description = "VM type"
-  default     = "n1-standard-1"
-}
-
-variable "ssh_whitelist" {
-  type        = list(string)
-  description = "List of IP addresses allowed to SSH"
-  default     = []
-}
-
 variable "container_repo" {
   type        = string
   description = "Name of container repository"
