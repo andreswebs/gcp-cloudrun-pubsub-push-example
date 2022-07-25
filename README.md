@@ -54,7 +54,8 @@ free-tier cluster is created manually.
 ## TODO:
 
 - HTTP load balancer
-- Cloud Run static outbound IP address (+ whitelist in Atlas)
+- Serverless VPC Access connector (for static outbound IP)
+- Cloud Run static outbound IP address whitelist in Atlas
 
 ## Authors
 
