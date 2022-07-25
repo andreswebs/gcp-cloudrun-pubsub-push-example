@@ -51,6 +51,11 @@ free-tier cluster with the `mongodb/mongodbatlas` Terraform provider.
 To deploy using Atlas free-tier, the first Terraform run will fail, until a
 free-tier cluster is created manually.
 
+## TODO:
+
+- HTTP load balancer
+- Cloud Run static outbound IP address (+ whitelist in Atlas)
+
 ## Authors
 
 **Andre Silva** - [@andreswebs](https://github.com/andreswebs)
