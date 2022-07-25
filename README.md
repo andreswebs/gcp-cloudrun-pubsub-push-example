@@ -31,6 +31,33 @@ The application container images can be built using the provided
 Note: the MongoDB Atlas API private key will be written in plaintext to the TF
 state file.
 
+## Build
+
+The build script requires a few environment variables to be set:
+
+```sh
+export GCLOUD_PROJECT="<gcp project id>"
+export GCLOUD_REGION="<gcp region>"
+export CONTAINER_REPO="<name of GCP container repository, e.g. 'default'>"
+```
+
+Build API:
+
+```sh
+cd apps/api
+../../scripts/gcloud-build.sh api
+```
+
+Build DB:
+
+```sh
+cd apps/db
+../../scripts/gcloud-build.sh db
+```
+
+Use the built image tags to populate the relevant Terraform variables (see
+below).
+
 ## Configuration
 
 The following TF_VARs are required:
@@ -39,8 +66,10 @@ The following TF_VARs are required:
 - `mongodb_atlas_org_id`: MongoDB Atlas organization ID
 - `mongodb_atlas_host`: The hostname of the MongoDB Atlas cluster
 - `mongodb_atlas_pubkey` The MongoDB cloud API access public key
-- `container_image_api`: container image tag for the API application
-- `container_image_db`: container image tag for the DB application
+- `container_image_api`: container image tag for the API application (in GCP
+  Artifact Registry)
+- `container_image_db`: container image tag for the DB application (in GCP
+  Artifact Registry)
 
 ### MongoDB Atlas:
 
