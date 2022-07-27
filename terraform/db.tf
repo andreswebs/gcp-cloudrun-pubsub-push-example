@@ -35,12 +35,6 @@ resource "google_secret_manager_secret_version" "mongodb_password" {
   secret_data = random_password.mongodb_user.result
 }
 
-# resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run" {
-#   secret_id = google_secret_manager_secret.mongodb_password.id
-#   role      = "roles/secretmanager.secretAccessor"
-#   member    = "serviceAccount:${google_service_account.db_cloud_run.email}"
-# }
-
 locals {
   mongodb_database_name = "app"
   mongodb_username      = "app"
