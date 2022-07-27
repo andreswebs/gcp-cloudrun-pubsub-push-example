@@ -60,6 +60,12 @@ variable "mongodb_password_secret" {
   default     = "mongodb-password"
 }
 
+variable "mongodb_password_secret_version" {
+  type        = string
+  description = "MongoDB password secret version"
+  default     = "1"
+}
+
 variable "container_image_db" {
   type        = string
   description = "Container image tag"

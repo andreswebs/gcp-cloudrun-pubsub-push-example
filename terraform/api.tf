@@ -6,7 +6,7 @@ resource "google_service_account" "api_cloud_run" {
 resource "google_pubsub_topic_iam_member" "api_publisher" {
   project = google_pubsub_topic.api_events.project
   topic   = google_pubsub_topic.api_events.name
-  role    = "roles/viewer"
+  role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${google_service_account.api_cloud_run.email}"
 }
 
