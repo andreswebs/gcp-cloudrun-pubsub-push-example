@@ -1,6 +1,8 @@
 import { PubSub, Message } from '@google-cloud/pubsub';
 import db, { MessageSchema } from './db';
 
+import { signals } from './constants';
+
 const subscriptionNameOrId = process.env.SUBSCRIPTION || 'api-events';
 const timeout = process.env.TIMEOUT_SECONDS
   ? parseInt(process.env.TIMEOUT_SECONDS, 10)
@@ -21,6 +23,22 @@ async function createMessage(data: MessageSchema) {
 async function listenForMessages() {
   let messageCount = 0;
 
+  let poll = true;
+
+  const shutdown = (signal: string, value: number) => {
+    console.log('shutdown');
+    console.log(`stopped by ${signal}`);
+    poll = false;
+    process.exit(128 + value);
+  };
+
+  Object.keys(signals).forEach((signal) => {
+    process.on(signal, () => {
+      console.log(`\nreceived ${signal}`);
+      shutdown(signal, signals[signal]);
+    });
+  });
+
   const messageHandler = (message: Message) => {
     const data = JSON.parse(message.data.toString());
     console.log(`Received message ${message.id}:`);
@@ -39,7 +57,7 @@ async function listenForMessages() {
 
   subscription.on('message', messageHandler);
 
-  while (true) {
+  while (poll) {
     await sleep(timeout * 1000).then(() => {
       console.log(`${messageCount} message(s) received.`);
       messageCount = 0;

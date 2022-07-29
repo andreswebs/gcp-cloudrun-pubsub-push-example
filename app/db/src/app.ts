@@ -3,6 +3,8 @@ import express from 'express';
 import { PubSubReqBody } from './types';
 import { listenForMessages, createMessage } from './utils';
 
+import { signals } from './constants';
+
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
@@ -58,12 +60,6 @@ if (pull) {
   const server = app.listen(port, () => {
     console.log(`server listening on port ${port}`);
   });
-
-  const signals = {
-    SIGHUP: 1,
-    SIGINT: 2,
-    SIGTERM: 15,
-  };
 
   const shutdown = (signal: string, value: number) => {
     console.log('shutdown');
