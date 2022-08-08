@@ -3,7 +3,7 @@
 This is an example serverless application running on GCP Cloud Run and using
 MongoDB Atlas as a database:
 
-![GCP Cloud Run PubSub Example](docs/diagrams/gcp-cloud-run-pubsun-example.png "example")
+![GCP Cloud Run PubSub Example](docs/diagrams/gcp-cloud-run-pubsub-example.png "example")
 
 The application consists of a publisher (`app: API`) and a subscriber
 (`app: DB`), which publish and read from a GCP Pub/Sub topic (`api-events`). The
