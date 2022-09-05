@@ -11,6 +11,6 @@ _SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="${1}"
 IMAGE_VERSION="${2:-latest}"
 
-IMAGE_TAG="$("${_SCRIPT_DIR}/config.sh" "${IMAGE_NAME}" "${IMAGE_VERSION}")"
+IMAGE="$("${_SCRIPT_DIR}/config.sh" "${IMAGE_NAME}" "${IMAGE_VERSION}")"
 
-gcloud builds submit --tag "${IMAGE_TAG}"
+gcloud builds submit --tag "${IMAGE}"

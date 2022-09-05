@@ -10,8 +10,9 @@ set -o nounset
 _SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 IMAGE_NAME="${1}"
+IMAGE_VERSION="${2:-latest}"
 
-IMAGE_TAG="$("${_SCRIPT_DIR}/config.sh" "${IMAGE_NAME}")"
+IMAGE="$("${_SCRIPT_DIR}/config.sh" "${IMAGE_NAME}" "${IMAGE_VERSION}")"
 
-docker build --tag "${IMAGE_TAG}" .
-docker push "${IMAGE_TAG}"
+docker build --tag "${IMAGE}" .
+docker push "${IMAGE}"
