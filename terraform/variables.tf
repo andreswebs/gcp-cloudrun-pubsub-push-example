@@ -3,12 +3,6 @@ variable "project" {
   description = "GCP project ID"
 }
 
-variable "credentials_file" {
-  type        = string
-  description = "GCP credentials file"
-  default     = "~/.config/gcloud/application_default_credentials.json"
-}
-
 variable "region" {
   type        = string
   description = "Compute region"
