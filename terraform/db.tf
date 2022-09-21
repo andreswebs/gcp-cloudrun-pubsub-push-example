@@ -1,54 +1,8 @@
 data "google_project" "project" {}
 
-resource "mongodbatlas_project" "this" {
-  org_id = var.mongodb_atlas_org_id
-  name   = var.mongodb_atlas_project_name
-}
-
-resource "random_password" "mongodb_user" {
-  length           = 32
-  numeric          = true
-  min_numeric      = 1
-  upper            = true
-  min_upper        = 1
-  lower            = true
-  min_lower        = 1
-  special          = true
-  min_special      = 0
-  override_special = "_-"
-}
-
 resource "google_service_account" "db_cloud_run" {
   account_id   = "db-cloud-run"
   display_name = "db"
-}
-
-resource "google_secret_manager_secret" "mongodb_password" {
-  secret_id = var.mongodb_password_secret
-  replication {
-    automatic = true
-  }
-}
-
-resource "google_secret_manager_secret_version" "mongodb_password" {
-  secret      = google_secret_manager_secret.mongodb_password.id
-  secret_data = random_password.mongodb_user.result
-}
-
-locals {
-  mongodb_database_name = "app"
-  mongodb_username      = "app"
-}
-
-resource "mongodbatlas_database_user" "mongodb_user" {
-  username           = local.mongodb_username
-  password           = google_secret_manager_secret_version.mongodb_password.secret_data
-  project_id         = mongodbatlas_project.this.id
-  auth_database_name = "admin"
-  roles {
-    role_name     = "readWrite"
-    database_name = local.mongodb_database_name
-  }
 }
 
 resource "google_cloud_run_service" "db" {
@@ -62,18 +16,28 @@ resource "google_cloud_run_service" "db" {
         image = var.container_image_db
 
         env {
-          name = "MONGO_PASSWORD"
-          value_from {
-            secret_key_ref {
-              name = google_secret_manager_secret.mongodb_password.secret_id
-              key  = var.mongodb_password_secret_version
-            }
-          }
+          name  = "MONGO_USERNAME"
+          value = var.mongodb_username
+        }
+
+        env {
+          name  = "MONGO_PASSWORD"
+          value = var.mongodb_password
         }
 
         env {
           name  = "MONGO_HOST"
-          value = var.mongodb_atlas_host
+          value = var.mongodb_host
+        }
+
+        env {
+          name  = "MONGO_DATABASE"
+          value = var.mongodb_host
+        }
+
+        env {
+          name  = "MONGO_PROTO"
+          value = var.mongodb_proto
         }
 
       }

@@ -1,10 +1,12 @@
 import { Schema, InferSchemaType, createConnection } from 'mongoose';
 
-const mongoProto = process.env.MONGO_PROTO || 'mongodb+srv';
-const mongoHost = process.env.MONGO_HOST;
-const mongoDatabase = process.env.MONGO_DATABASE || 'app';
-const mongoUser = process.env.MONGO_USER || 'app';
-const mongoPass = process.env.MONGO_PASSWORD;
+import {
+  mongoProto,
+  mongoHost,
+  mongoDatabase,
+  mongoUser,
+  mongoPass,
+} from './constants';
 
 const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?retryWrites=true&w=majority`;
 
@@ -23,9 +25,11 @@ const conn = createConnection(mongoURI, mongoOptions);
 conn.on('connected', () => {
   console.log('DB connection open');
 });
+
 conn.on('error', (err) => {
   console.log(`DB connection error: ${err}`);
 });
+
 conn.on('disconnected', () => {
   console.log('DB connection terminated');
 });

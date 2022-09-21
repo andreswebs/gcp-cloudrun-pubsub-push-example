@@ -2,13 +2,9 @@ import express from 'express';
 
 import { PubSubReqBody } from './types';
 import { listenForMessages, createMessage } from './utils';
-
-import { signals } from './constants';
+import { signals, port, pull } from './constants';
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
-
-const pull = process.env.PULL ? true : false;
 
 app.use(express.json());
 

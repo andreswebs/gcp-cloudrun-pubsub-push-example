@@ -6,58 +6,19 @@ variable "project" {
 variable "region" {
   type        = string
   description = "Compute region"
-  default     = "us-central1"
+  default     = "europe-west4"
 }
 
 variable "zone" {
   type        = string
   description = "Compute zone"
-  default     = "us-central1-c"
+  default     = "europe-west4-a"
 }
 
 variable "container_repo" {
   type        = string
   description = "Name of container repository"
   default     = "default"
-}
-
-variable "mongodb_atlas_secret" {
-  type        = string
-  description = "Name of secret in GCP storing the MongoDB Atlas private access key"
-  default     = "mongodb-atlas-key"
-}
-
-variable "mongodb_atlas_pubkey" {
-  type        = string
-  description = "MongoDB Atlas public access key"
-}
-
-variable "mongodb_atlas_project_name" {
-  type        = string
-  description = "MongoDB Atlas project name"
-  default     = "data"
-}
-
-variable "mongodb_atlas_org_id" {
-  type        = string
-  description = "MongoDB Cloud organization ID"
-}
-
-variable "mongodb_atlas_host" {
-  type        = string
-  description = "MongoDB Atlas hostname"
-}
-
-variable "mongodb_password_secret" {
-  type        = string
-  description = "Name of secret in GCP that will be created to store the generated MongoDB password"
-  default     = "mongodb-password"
-}
-
-variable "mongodb_password_secret_version" {
-  type        = string
-  description = "MongoDB password secret version"
-  default     = "1"
 }
 
 variable "container_image_db" {
@@ -68,4 +29,39 @@ variable "container_image_db" {
 variable "container_image_api" {
   type        = string
   description = "Container image tag"
+}
+
+variable "mongodb_username" {
+  type        = string
+  default     = "app"
+  description = "MongoDB username"
+}
+
+variable "mongodb_password" {
+  type        = string
+  description = "MongoDB password"
+  sensitive   = true
+}
+
+variable "mongodb_host" {
+  type        = string
+  description = "MongoDB host"
+}
+
+variable "mongodb_database" {
+  type        = string
+  default     = "app"
+  description = "MongoDB database name"
+}
+
+variable "mongodb_proto" {
+  type        = string
+  default     = "mongodb"
+  description = "MongoDB Protocol"
+
+  validation {
+    condition     = can(regex("^mongodb", var.mongodb_proto))
+    error_message = "Must begin with `mongodb`."
+  }
+
 }
