@@ -32,7 +32,7 @@ resource "google_cloud_run_service" "db" {
 
         env {
           name  = "MONGO_DATABASE"
-          value = var.mongodb_host
+          value = var.mongodb_database
         }
 
         env {

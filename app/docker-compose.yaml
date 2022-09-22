@@ -1,0 +1,38 @@
+## TODO
+---
+version: '3'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      # CLOUDSDK_CORE_PROJECT:
+      CLOUDSDK_CONFIG: /gcp/config
+      GOOGLE_APPLICATION_CREDENTIALS: /gcp/config/application_default_credentials.json
+      PORT: 3000
+      TOPIC_NAME: otel-poc-api-events
+    volumes:
+      - ~/.config/gcloud:/gcp/config:ro
+      - /gcp/config/logs
+    ports:
+      - 3000:3000
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile  
+    environment:
+      # CLOUDSDK_CORE_PROJECT:
+      CLOUDSDK_CONFIG: /gcp/config
+      GOOGLE_APPLICATION_CREDENTIALS: /gcp/config/application_default_credentials.json
+      PULL: true
+      # SUBSCRIPTION: 
+      MONGO_HOST: localhost:27017
+      MONGO_DATABASE: otel_poc
+      MONGO_USERNAME: app
+      MONGO_PASSWORD:
+    volumes:
+      - ~/.config/gcloud:/gcp/config:ro
+      - /gcp/config/logs      
+  mongo:

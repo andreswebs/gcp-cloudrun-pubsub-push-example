@@ -1,3 +1,13 @@
+# data "google_secret_manager_secret_version" "mongod_atlas_key" {
+#   secret = var.mongodb_atlas_secret
+# }
+
+# provider "mongodbatlas" {
+#   private_key = data.google_secret_manager_secret_version.mongod_atlas_key.secret_data
+#   public_key  = var.mongodb_atlas_pubkey
+# }
+
+
 # resource "mongodbatlas_project" "this" {
 #   org_id = var.mongodb_atlas_org_id
 #   name   = var.mongodb_atlas_project_name
@@ -17,15 +27,15 @@
 # }
 
 
-# resource "google_secret_manager_secret" "mongodb_password" {
-#   secret_id = var.mongodb_password_secret
+# resource "google_secret_manager_secret" "mongodb_atlas_password" {
+#   secret_id = var.mongodb_atlas_password_secret
 #   replication {
 #     automatic = true
 #   }
 # }
 
-# resource "google_secret_manager_secret_version" "mongodb_password" {
-#   secret      = google_secret_manager_secret.mongodb_password.id
+# resource "google_secret_manager_secret_version" "mongodb_atlas_password" {
+#   secret      = google_secret_manager_secret.mongodb_atlas_password.id
 #   secret_data = random_password.mongodb_user.result
 # }
 
@@ -36,7 +46,7 @@
 
 # resource "mongodbatlas_database_user" "mongodb_user" {
 #   username           = local.mongodb_username
-#   password           = google_secret_manager_secret_version.mongodb_password.secret_data
+#   password           = google_secret_manager_secret_version.mongodb_atlas_password.secret_data
 #   project_id         = mongodbatlas_project.this.id
 #   auth_database_name = "admin"
 #   roles {

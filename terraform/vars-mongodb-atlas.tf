@@ -1,4 +1,3 @@
-
 # variable "mongodb_atlas_secret" {
 #   type        = string
 #   description = "Name of secret in GCP storing the MongoDB Atlas private access key"
@@ -26,13 +25,13 @@
 #   description = "MongoDB Atlas hostname"
 # }
 
-# variable "mongodb_password_secret" {
+# variable "mongodb_atlas_password_secret" {
 #   type        = string
 #   description = "Name of secret in GCP that will be created to store the generated MongoDB password"
 #   default     = "mongodb-password"
 # }
 
-# variable "mongodb_password_secret_version" {
+# variable "mongodb_atlas_password_secret_version" {
 #   type        = string
 #   description = "MongoDB password secret version"
 #   default     = "1"

@@ -37,10 +37,10 @@ variable "mongodb_username" {
   description = "MongoDB username"
 }
 
-variable "mongodb_password" {
+variable "mongodb_password_secret" {
   type        = string
-  description = "MongoDB password"
-  sensitive   = true
+  description = "Name of GCP secret containing MongoDB password"
+  default     = "mongodb_app_password"
 }
 
 variable "mongodb_host" {

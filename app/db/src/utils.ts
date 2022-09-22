@@ -1,12 +1,7 @@
 import { PubSub, Message } from '@google-cloud/pubsub';
 import db, { MessageSchema } from './db';
 
-import { signals } from './constants';
-
-const subscriptionNameOrId = process.env.SUBSCRIPTION || 'api-events';
-const timeout = process.env.TIMEOUT_SECONDS
-  ? parseInt(process.env.TIMEOUT_SECONDS, 10)
-  : 60;
+import { signals, timeout, subscriptionNameOrId } from './constants';
 
 const pubSubClient = new PubSub();
 

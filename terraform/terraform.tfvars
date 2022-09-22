@@ -1,9 +1,7 @@
-project = "personal-333504"
+project = "andre-silva-dev-d537"
 
-mongodb_atlas_org_id = "62dc0de1c4c095490cd5cae1"
-mongodb_atlas_pubkey = "duakqklt"
+container_image_db  = "europe-docker.pkg.dev/andre-silva-dev-d537/default/db:latest"
+container_image_api = "europe-docker.pkg.dev/andre-silva-dev-d537/default/api:latest"
 
-mongodb_atlas_host = "data.c4cefzf.mongodb.net"
-
-container_image_db  = "us-central1-docker.pkg.dev/personal-333504/default/db:demo"
-container_image_api = "us-central1-docker.pkg.dev/personal-333504/default/api:demo"
+mongodb_host = "rseu/dev-db0.andreswebs.dev,dev-db1.andreswebs.dev, dev-db2.andreswebs.dev" 
+mongodb_database = "otel_poc"
