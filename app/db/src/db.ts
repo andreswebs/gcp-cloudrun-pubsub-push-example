@@ -8,7 +8,7 @@ import {
   mongoPass,
 } from './constants';
 
-const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?retryWrites=true&w=majority`;
+const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?authSource=admin`;
 
 const mongoOptions = { connectTimeoutMS: 40000 };
 

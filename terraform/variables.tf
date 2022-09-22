@@ -15,6 +15,18 @@ variable "zone" {
   default     = "europe-west4-a"
 }
 
+variable "serverless_connector_name" {
+  type        = string
+  description = "Name of serverless connector to use"
+  default     = null
+}
+
+variable "project_network" {
+  type        = string
+  description = "Network on which to connect resources"
+  default     = "default"
+}
+
 variable "topic_name" {
   type        = string
   description = "API events topic name"
@@ -76,4 +88,22 @@ variable "mongodb_proto" {
     error_message = "Must begin with `mongodb`."
   }
 
+}
+
+variable "mongodb_tls_ca_crt_secret" {
+  type        = string
+  description = "Name of secret containing CA certificate"
+  default     = null
+}
+
+variable "mongodb_tls_crt_secret" {
+  type        = string
+  description = "Name of secret containing TLS certificate"
+  default     = null
+}
+
+variable "mongodb_tls_key_secret" {
+  type        = string
+  description = "Name of secret containing TLS private key"
+  default     = null
 }

@@ -14,13 +14,24 @@ resource "google_cloud_run_service" "api" {
   name     = "api"
   location = var.region
   template {
+
+    metadata {
+      annotations = merge(
+        {
+          "autoscaling.knative.dev/maxScale" = "5"
+        },
+        local.serverless_connector_annotations
+      )
+    }
+
     spec {
       service_account_name = google_service_account.api_cloud_run.email
+
       containers {
         image = var.container_image_api
 
         env {
-          name = "TOPIC_NAME"
+          name  = "TOPIC_NAME"
           value = google_pubsub_topic.api_events.name
         }
 

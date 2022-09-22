@@ -7,10 +7,32 @@ data "google_secret_manager_secret" "mongodb_password" {
   secret_id = var.mongodb_password_secret
 }
 
+data "google_secret_manager_secret" "mongodb_tls_ca_crt" {
+  secret_id = var.mongodb_tls_ca_crt_secret
+}
+
+data "google_secret_manager_secret" "mongodb_tls_crt" {
+  secret_id = var.mongodb_tls_crt_secret
+}
+
+data "google_secret_manager_secret" "mongodb_tls_key" {
+  secret_id = var.mongodb_tls_key_secret
+}
+
 resource "google_cloud_run_service" "db" {
   name     = "db"
   location = var.region
   template {
+
+    metadata {
+      annotations = merge(
+        {
+          "autoscaling.knative.dev/maxScale" = "5"
+        },
+        local.serverless_connector_annotations
+      )
+    }
+
     spec {
       service_account_name = google_service_account.db_cloud_run_invoker.email
 
@@ -47,13 +69,68 @@ resource "google_cloud_run_service" "db" {
           value = var.mongodb_proto
         }
 
+        volume_mounts {
+          name       = "mongo-tls-crt"
+          mount_path = "/etc/mongodb-tls/tls.crt"
+        }
+
+        volume_mounts {
+          name       = "mongo-tls-key"
+          mount_path = "/etc/mongodb-tls/tls.key"
+        }
+
+        volume_mounts {
+          name       = "mongo-tls-ca-crt"
+          mount_path = "/etc/mongodb-tls/ca.crt"
+        }
+
       }
+
+      volumes {
+        name = "mongo-tls-crt"
+        secret {
+          secret_name  = data.google_secret_manager_secret.mongodb_tls_crt.secret_id
+          default_mode = 0640
+          items {
+            key  = "latest"
+            path = "tls.crt"
+          }
+        }
+      }
+
+      volumes {
+        name = "mongo-tls-key"
+        secret {
+          secret_name  = data.google_secret_manager_secret.mongodb_tls_key.secret_id
+          default_mode = 0640
+          items {
+            key  = "latest"
+            path = "tls.key"
+          }
+        }
+      }
+
+      volumes {
+        name = "mongo-tls-ca-crt"
+        secret {
+          secret_name  = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
+          default_mode = 0640
+          items {
+            key  = "latest"
+            path = "ca.crt"
+          }
+        }
+      }
+
     }
   }
+
   traffic {
     percent         = 100
     latest_revision = true
   }
+
+  autogenerate_revision_name = true
 }
 
 resource "google_service_account" "db_cloud_run_invoker" {
@@ -61,9 +138,26 @@ resource "google_service_account" "db_cloud_run_invoker" {
   display_name = "Cloud Run Pub/Sub Invoker"
 }
 
-
 resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_password.id
+  secret_id = data.google_secret_manager_secret.mongodb_password.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_ca_crt_db_cloud_run_invoker" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_crt_db_cloud_run_invoker" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_crt.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_db_cloud_run_invoker" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }

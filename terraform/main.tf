@@ -1,27 +1,12 @@
 data "google_project" "project" {}
 
-resource "google_pubsub_topic" "api_events" {
-  name = var.topic_name
-  labels = {
-    service = "api"
-  }
-}
+locals {
 
-resource "google_pubsub_subscription" "api_events_db" {
-  name  = var.topic_name
-  topic = google_pubsub_topic.api_events.name
-}
+  serverless_connector_egress = var.serverless_connector_name != null && var.serverless_connector_name != "" ? "all-traffic" : null
 
-resource "google_pubsub_subscription" "api_events_db_push" {
-  name  = "${var.topic_name}-push"
-  topic = google_pubsub_topic.api_events.name
-  push_config {
-    push_endpoint = google_cloud_run_service.db.status[0].url
-    oidc_token {
-      service_account_email = google_service_account.db_cloud_run_invoker.email
-    }
-    attributes = {
-      x-goog-version = "v1"
-    }
+  serverless_connector_annotations = {
+    "run.googleapis.com/vpc-access-connector" = var.serverless_connector_name
+    "run.googleapis.com/vpc-access-egress"    = local.serverless_connector_egress
   }
+  
 }
