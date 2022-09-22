@@ -4,4 +4,3 @@
 *.tfstate*
 *.tfbackend
 
-!terraform.tfvars
