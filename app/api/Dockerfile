@@ -25,4 +25,4 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/ /app/
 COPY --from=build /app/dist/ /app/
-CMD ["node", "/app/app.js"]
+CMD ["node", "/app/server.js"]

@@ -2,6 +2,7 @@ import { PubSub, Message } from '@google-cloud/pubsub';
 import db, { MessageSchema } from './db';
 
 import { signals, timeout, subscriptionNameOrId } from './constants';
+import { Server } from 'http';
 
 const pubSubClient = new PubSub();
 
@@ -20,7 +21,7 @@ async function listenForMessages() {
 
   let poll = true;
 
-  const shutdown = (signal: string, value: number) => {
+  const stopListen = (signal: string, value: number) => {
     console.log('shutdown');
     console.log(`stopped by ${signal}`);
     poll = false;
@@ -30,7 +31,7 @@ async function listenForMessages() {
   Object.keys(signals).forEach((signal) => {
     process.on(signal, () => {
       console.log(`\nreceived ${signal}`);
-      shutdown(signal, signals[signal]);
+      stopListen(signal, signals[signal]);
     });
   });
 
@@ -60,4 +61,21 @@ async function listenForMessages() {
   }
 }
 
-export { listenForMessages, createMessage };
+const handleSignals = (server: Server) => {
+  const shutdown = (signal: string, value: number) => {
+    console.log('shutdown');
+    server.close(() => {
+      console.log(`stopped by ${signal}`);
+      process.exit(128 + value);
+    });
+  };
+
+  Object.keys(signals).forEach((signal) => {
+    process.on(signal, () => {
+      console.log(`\nreceived ${signal}`);
+      shutdown(signal, signals[signal]);
+    });
+  });
+};
+
+export { listenForMessages, createMessage, handleSignals };

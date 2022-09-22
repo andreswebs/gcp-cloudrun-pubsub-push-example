@@ -15,6 +15,12 @@ variable "zone" {
   default     = "europe-west4-a"
 }
 
+variable "topic_name" {
+  type        = string
+  description = "API events topic name"
+  default     = "api-events"
+}
+
 variable "container_repo" {
   type        = string
   description = "Name of container repository"
@@ -33,8 +39,8 @@ variable "container_image_api" {
 
 variable "mongodb_username" {
   type        = string
-  default     = "app"
   description = "MongoDB username"
+  default     = "app"
 }
 
 variable "mongodb_password_secret" {
@@ -43,9 +49,15 @@ variable "mongodb_password_secret" {
   default     = "mongodb_app_password"
 }
 
+variable "mongodb_password_secret_version" {
+  type        = string
+  description = "Secret version"
+  default     = "1"
+}
+
 variable "mongodb_host" {
   type        = string
-  description = "MongoDB host"
+  description = "MongoDB host string with optional port"
 }
 
 variable "mongodb_database" {

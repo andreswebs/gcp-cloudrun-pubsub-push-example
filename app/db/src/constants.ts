@@ -5,12 +5,12 @@ const signals = {
 };
 
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
-const pull = process.env.PULL ? false : true;
+const pull = process.env.PULL ? true : false;
 const timeout = process.env.TIMEOUT_SECONDS
   ? parseInt(process.env.TIMEOUT_SECONDS, 10)
   : 60;
 
-const subscriptionNameOrId = process.env.SUBSCRIPTION;
+const subscriptionNameOrId = process.env.SUBSCRIPTION || 'api-events';
 
 const mongoProto = process.env.MONGO_PROTO || 'mongodb';
 const mongoHost = process.env.MONGO_HOST;

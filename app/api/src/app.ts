@@ -1,8 +1,5 @@
 import express from 'express';
-
-import { port } from './constants';
-
-import { publishMessage, handleSignals } from './utils';
+import { publishMessage } from './utils';
 
 const app = express();
 
@@ -29,8 +26,4 @@ app.get('/msg', (req, res) => {
     });
 });
 
-const server = app.listen(port, () => {
-  console.log(`server listening on port ${port}`);
-});
-
-handleSignals(server);
+export default app;

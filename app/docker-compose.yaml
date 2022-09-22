@@ -12,7 +12,7 @@ services:
       CLOUDSDK_CONFIG: /gcp/config
       GOOGLE_APPLICATION_CREDENTIALS: /gcp/config/application_default_credentials.json
       PORT: 3000
-      TOPIC_NAME: otel-poc-api-events
+      TOPIC_NAME: api-events
     volumes:
       - ~/.config/gcloud:/gcp/config:ro
       - /gcp/config/logs
@@ -27,11 +27,11 @@ services:
       CLOUDSDK_CONFIG: /gcp/config
       GOOGLE_APPLICATION_CREDENTIALS: /gcp/config/application_default_credentials.json
       PULL: true
-      # SUBSCRIPTION: 
       MONGO_HOST: localhost:27017
       MONGO_DATABASE: otel_poc
       MONGO_USERNAME: app
-      MONGO_PASSWORD:
+      # MONGO_PASSWORD:
+      # SUBSCRIPTION: 
     volumes:
       - ~/.config/gcloud:/gcp/config:ro
       - /gcp/config/logs      

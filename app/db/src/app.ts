@@ -1,8 +1,7 @@
 import express from 'express';
 
 import { PubSubReqBody } from './types';
-import { listenForMessages, createMessage } from './utils';
-import { signals, port, pull } from './constants';
+import { createMessage } from './utils';
 
 const app = express();
 
@@ -50,25 +49,4 @@ app.post('/', (req, res) => {
   res.status(204).send();
 });
 
-if (pull) {
-  listenForMessages();
-} else {
-  const server = app.listen(port, () => {
-    console.log(`server listening on port ${port}`);
-  });
-
-  const shutdown = (signal: string, value: number) => {
-    console.log('shutdown');
-    server.close(() => {
-      console.log(`stopped by ${signal}`);
-      process.exit(128 + value);
-    });
-  };
-
-  Object.keys(signals).forEach((signal) => {
-    process.on(signal, () => {
-      console.log(`\nreceived ${signal}`);
-      shutdown(signal, signals[signal]);
-    });
-  });
-}
+export default app;

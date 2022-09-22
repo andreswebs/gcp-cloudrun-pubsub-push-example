@@ -1,8 +1,10 @@
-data "google_project" "project" {}
-
 resource "google_service_account" "db_cloud_run" {
   account_id   = "db-cloud-run"
   display_name = "db"
+}
+
+data "google_secret_manager_secret" "mongodb_password" {
+  secret_id = var.mongodb_password_secret
 }
 
 resource "google_cloud_run_service" "db" {
@@ -21,8 +23,13 @@ resource "google_cloud_run_service" "db" {
         }
 
         env {
-          name  = "MONGO_PASSWORD"
-          value = var.mongodb_password
+          name = "MONGO_PASSWORD"
+          value_from {
+            secret_key_ref {
+              name = data.google_secret_manager_secret.mongodb_password.secret_id
+              key  = var.mongodb_password_secret_version
+            }
+          }
         }
 
         env {
@@ -56,7 +63,7 @@ resource "google_service_account" "db_cloud_run_invoker" {
 
 
 resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run_invoker" {
-  secret_id = google_secret_manager_secret.mongodb_password.id
+  secret_id = data.google_secret_manager_secret.mongodb_password.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
