@@ -1,3 +1,6 @@
+import { setupTracing } from './tracer';
+setupTracing('db');
+
 import express from 'express';
 
 import { PubSubReqBody } from './types';

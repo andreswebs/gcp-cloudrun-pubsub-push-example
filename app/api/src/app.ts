@@ -1,3 +1,6 @@
+import { setupTracing } from './tracer';
+setupTracing('api');
+
 import express from 'express';
 import { publishMessage } from './utils';
 
@@ -16,10 +19,11 @@ app.get('/health', (_req, res) => {
 
 // Send message to queue
 app.get('/msg', (req, res) => {
-  const msg = { msg: req.query.msg };
+  const luck = Math.floor(Math.random() * 100);
+  const msg = { msg: req.query.msg, luck };
   publishMessage(JSON.stringify(msg))
     .then(() => {
-      res.send(`message sent; luck: ${Math.floor(Math.random() * 100)}`);
+      res.send(`message sent; luck: ${luck}`);
     })
     .catch((e) => {
       res.send(`failed with ${e.name}: ${e.message}`);

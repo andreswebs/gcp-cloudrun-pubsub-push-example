@@ -19,6 +19,30 @@ data "google_secret_manager_secret" "mongodb_tls_key_password" {
   secret_id = var.mongodb_tls_key_password_secret
 }
 
+resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run" {
+  secret_id = data.google_secret_manager_secret.mongodb_password.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_ca_crt_db_cloud_run" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_db_cloud_run" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_password_db_cloud_run" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_key_password.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.db_cloud_run.email}"
+}
+
 locals {
   mongodb_volume_suffix_ca  = "ca"
   mongodb_volume_suffix_pem = "pem"
@@ -26,7 +50,7 @@ locals {
   mongodb_file_tls_pem      = "tls.pem"
 
   mongob_tls_ca_crt = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_ca}/${local.mongodb_file_ca_crt}"
-  mongodb_tls_key = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_pem}/${local.mongodb_file_tls_pem}"
+  mongodb_tls_key   = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_pem}/${local.mongodb_file_tls_pem}"
 }
 
 resource "google_cloud_run_service" "db" {
@@ -44,7 +68,7 @@ resource "google_cloud_run_service" "db" {
     }
 
     spec {
-      service_account_name = google_service_account.db_cloud_run_invoker.email
+      service_account_name = google_service_account.db_cloud_run.email
 
       containers {
         image = var.container_image_db
@@ -95,7 +119,7 @@ resource "google_cloud_run_service" "db" {
         }
 
         env {
-          name  = "MONGO_TLS_KEY_PASSWORD"
+          name = "MONGO_TLS_KEY_PASSWORD"
           value_from {
             secret_key_ref {
               name = data.google_secret_manager_secret.mongodb_tls_key_password.secret_id
@@ -121,7 +145,7 @@ resource "google_cloud_run_service" "db" {
       volumes {
         name = "mongo-tls-pem"
         secret {
-          secret_name  = data.google_secret_manager_secret.mongodb_tls_key.secret_id
+          secret_name = data.google_secret_manager_secret.mongodb_tls_key.secret_id
           # default_mode = 0640
           items {
             key  = "latest"
@@ -133,7 +157,7 @@ resource "google_cloud_run_service" "db" {
       volumes {
         name = "mongo-tls-ca"
         secret {
-          secret_name  = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
+          secret_name = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
           # default_mode = 0640
           items {
             key  = "latest"
@@ -156,30 +180,6 @@ resource "google_cloud_run_service" "db" {
 resource "google_service_account" "db_cloud_run_invoker" {
   account_id   = "cloud-run-pubsub-invoker"
   display_name = "Cloud Run Pub/Sub Invoker"
-}
-
-resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_password.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
-}
-
-resource "google_secret_manager_secret_iam_member" "mongodb_tls_ca_crt_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
-}
-
-resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_tls_key.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
-}
-
-resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_password_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_tls_key_password.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
 
 resource "google_project_iam_binding" "db_cloud_run_invoker" {
