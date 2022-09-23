@@ -5,7 +5,9 @@ import { topicName, signals } from './constants';
 
 const pubSubClient = new PubSub();
 
-const topic = pubSubClient.topic(topicName);
+const topic = pubSubClient.topic(topicName, {
+  enableOpenTelemetryTracing: true,
+});
 
 async function publishMessage(msg: string) {
   const data = Buffer.from(msg);

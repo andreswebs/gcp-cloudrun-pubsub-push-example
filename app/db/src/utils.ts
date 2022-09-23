@@ -6,7 +6,9 @@ import { Server } from 'http';
 
 const pubSubClient = new PubSub();
 
-const subscription = pubSubClient.subscription(subscriptionNameOrId);
+const subscription = pubSubClient.subscription(subscriptionNameOrId, {
+  enableOpenTelemetryTracing: true,
+});
 
 async function sleep(waitMilliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, waitMilliseconds));

@@ -14,7 +14,7 @@ app.use('/', (req, _res, next) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.send('healthy');
+  res.status(204).send('healthy');
 });
 
 app.post('/', (req, res) => {
@@ -46,7 +46,7 @@ app.post('/', (req, res) => {
     }).catch(console.error);
   }
 
-  res.status(204).send();
+  res.status(204).send('ok');
 });
 
 export default app;
