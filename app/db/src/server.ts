@@ -4,6 +4,10 @@ import { port, pull } from './constants';
 
 import app from './app';
 
+import { setupTracing } from './tracer';
+
+setupTracing('db');
+
 if (pull) {
   listenForMessages();
 } else {
