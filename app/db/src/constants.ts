@@ -14,18 +14,22 @@ const subscriptionNameOrId = process.env.SUBSCRIPTION || 'api-events';
 
 const mongoProto = process.env.MONGO_PROTO || 'mongodb';
 const mongoHost = process.env.MONGO_HOST;
-const mongoDatabase = process.env.MONGO_DATABASE;
 const mongoUser = process.env.MONGO_USERNAME;
 const mongoPass = process.env.MONGO_PASSWORD;
+const mongoDatabase = process.env.MONGO_DATABASE;
+
+const mongoTLSCA = process.env.MONGO_TLS_CA_CRT;
+const mongoTLSKey = process.env.MONGO_TLS_KEY;
+const mongoTLSKeyPass = process.env.MONGO_TLS_KEY_PASSWORD;
+
+const mongoReplicaSet = process.env.MONGO_REPLICA_SET;
+
+const mongoAuthSourceDB = process.env.MONGO_AUTH_SOURCE_DB || 'admin';
 
 const errMsg = 'missing env var';
 
 if (!mongoHost) {
   throw new Error(`${errMsg}: MONGO_HOST`);
-}
-
-if (!mongoDatabase) {
-  throw new Error(`${errMsg}: MONGO_DATABASE`);
 }
 
 if (!mongoUser) {
@@ -40,15 +44,28 @@ if (pull && !subscriptionNameOrId) {
   throw new Error(`${errMsg}: SUBSCRIPTION`);
 }
 
-export {
-  signals,
-  port,
-  pull,
-  subscriptionNameOrId,
-  timeout,
-  mongoProto,
-  mongoHost,
-  mongoDatabase,
-  mongoUser,
-  mongoPass,
-};
+const mongoTLSOpts = (() => {
+  let tlsOpts = '';
+
+  if (mongoTLSCA && mongoTLSKey) {
+    tlsOpts += `&tls=true&tlsCAFile=${mongoTLSCA}&tlsCertificateKeyFile=${mongoTLSKey}`;
+  }
+
+  if (mongoTLSKeyPass) {
+    tlsOpts += `&tlsCertificateKeyFilePassword=${mongoTLSKeyPass}`;
+  }
+
+  return tlsOpts;
+})();
+
+const mongoRSOpts = (() => {
+  let rsOpts = '';
+  if (mongoReplicaSet) {
+    rsOpts += `&replicaSet=${mongoReplicaSet}`;
+  }
+  return rsOpts;
+})();
+
+const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?authSource=${mongoAuthSourceDB}${mongoRSOpts}${mongoTLSOpts}`;
+
+export { signals, port, pull, subscriptionNameOrId, timeout, mongoURI };

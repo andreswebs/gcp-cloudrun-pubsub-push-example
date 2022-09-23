@@ -1,14 +1,6 @@
 import { Schema, InferSchemaType, createConnection } from 'mongoose';
 
-import {
-  mongoProto,
-  mongoHost,
-  mongoDatabase,
-  mongoUser,
-  mongoPass,
-} from './constants';
-
-const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?authSource=admin`;
+import { mongoURI } from './constants';
 
 const mongoOptions = { connectTimeoutMS: 40000 };
 

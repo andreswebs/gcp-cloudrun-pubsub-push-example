@@ -72,6 +72,12 @@ variable "mongodb_host" {
   description = "MongoDB host string with optional port"
 }
 
+variable "mongodb_replica_set" {
+  type        = string
+  description = "MongoDB Replica Set name"
+  default     = null
+}
+
 variable "mongodb_database" {
   type        = string
   default     = "app"
@@ -90,20 +96,32 @@ variable "mongodb_proto" {
 
 }
 
+variable "mongodb_tls_dir" {
+  type        = string
+  description = "Directory path where MongoDB TLS certificates are stored in the container"
+  default     = "/etc/mongodb-tls"
+}
+
 variable "mongodb_tls_ca_crt_secret" {
   type        = string
   description = "Name of secret containing CA certificate"
   default     = null
 }
 
-variable "mongodb_tls_crt_secret" {
+variable "mongodb_tls_key_secret" {
   type        = string
-  description = "Name of secret containing TLS certificate"
+  description = "Name of secret containing TLS certificate and key"
   default     = null
 }
 
-variable "mongodb_tls_key_secret" {
+variable "mongodb_tls_key_password_secret" {
   type        = string
   description = "Name of secret containing TLS private key"
   default     = null
+}
+
+variable "mongodb_tls_key_password_secret_version" {
+  type        = string
+  description = "Secret version"
+  default     = "1"
 }

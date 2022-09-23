@@ -11,12 +11,22 @@ data "google_secret_manager_secret" "mongodb_tls_ca_crt" {
   secret_id = var.mongodb_tls_ca_crt_secret
 }
 
-data "google_secret_manager_secret" "mongodb_tls_crt" {
-  secret_id = var.mongodb_tls_crt_secret
-}
-
 data "google_secret_manager_secret" "mongodb_tls_key" {
   secret_id = var.mongodb_tls_key_secret
+}
+
+data "google_secret_manager_secret" "mongodb_tls_key_password" {
+  secret_id = var.mongodb_tls_key_password_secret
+}
+
+locals {
+  mongodb_volume_suffix_ca  = "ca"
+  mongodb_volume_suffix_pem = "pem"
+  mongodb_file_ca_crt       = "ca.crt"
+  mongodb_file_tls_pem      = "tls.pem"
+
+  mongob_tls_ca_crt = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_ca}/${local.mongodb_file_ca_crt}"
+  mongodb_tls_key = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_pem}/${local.mongodb_file_tls_pem}"
 }
 
 resource "google_cloud_run_service" "db" {
@@ -60,6 +70,11 @@ resource "google_cloud_run_service" "db" {
         }
 
         env {
+          name  = "MONGO_REPLICA_SET"
+          value = var.mongodb_replica_set
+        }
+
+        env {
           name  = "MONGO_DATABASE"
           value = var.mongodb_database
         }
@@ -69,55 +84,60 @@ resource "google_cloud_run_service" "db" {
           value = var.mongodb_proto
         }
 
-        volume_mounts {
-          name       = "mongo-tls-crt"
-          mount_path = "/etc/mongodb-tls/tls.crt"
+        env {
+          name  = "MONGO_TLS_CA_CRT"
+          value = local.mongob_tls_ca_crt
         }
 
-        volume_mounts {
-          name       = "mongo-tls-key"
-          mount_path = "/etc/mongodb-tls/tls.key"
+        env {
+          name  = "MONGO_TLS_KEY"
+          value = local.mongodb_tls_key
         }
 
-        volume_mounts {
-          name       = "mongo-tls-ca-crt"
-          mount_path = "/etc/mongodb-tls/ca.crt"
-        }
-
-      }
-
-      volumes {
-        name = "mongo-tls-crt"
-        secret {
-          secret_name  = data.google_secret_manager_secret.mongodb_tls_crt.secret_id
-          default_mode = 0640
-          items {
-            key  = "latest"
-            path = "tls.crt"
+        env {
+          name  = "MONGO_TLS_KEY_PASSWORD"
+          value_from {
+            secret_key_ref {
+              name = data.google_secret_manager_secret.mongodb_tls_key_password.secret_id
+              key  = var.mongodb_tls_key_password_secret_version
+            }
           }
         }
+
+        ## NOTE: secrets can't be mounted on the same dir
+        ## https://cloud.google.com/run/docs/configuring/secrets#disallowed_paths_and_limitations
+        volume_mounts {
+          name       = "mongo-tls-pem"
+          mount_path = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_pem}"
+        }
+
+        volume_mounts {
+          name       = "mongo-tls-ca"
+          mount_path = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_ca}"
+        }
+
       }
 
       volumes {
-        name = "mongo-tls-key"
+        name = "mongo-tls-pem"
         secret {
           secret_name  = data.google_secret_manager_secret.mongodb_tls_key.secret_id
-          default_mode = 0640
+          # default_mode = 0640
           items {
             key  = "latest"
-            path = "tls.key"
+            path = local.mongodb_file_tls_pem
           }
         }
       }
 
       volumes {
-        name = "mongo-tls-ca-crt"
+        name = "mongo-tls-ca"
         secret {
           secret_name  = data.google_secret_manager_secret.mongodb_tls_ca_crt.secret_id
-          default_mode = 0640
+          # default_mode = 0640
           items {
             key  = "latest"
-            path = "ca.crt"
+            path = local.mongodb_file_ca_crt
           }
         }
       }
@@ -150,14 +170,14 @@ resource "google_secret_manager_secret_iam_member" "mongodb_tls_ca_crt_db_cloud_
   member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
 
-resource "google_secret_manager_secret_iam_member" "mongodb_tls_crt_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_tls_crt.secret_id
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_db_cloud_run_invoker" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
 
-resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_db_cloud_run_invoker" {
-  secret_id = data.google_secret_manager_secret.mongodb_tls_key.secret_id
+resource "google_secret_manager_secret_iam_member" "mongodb_tls_key_password_db_cloud_run_invoker" {
+  secret_id = data.google_secret_manager_secret.mongodb_tls_key_password.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
