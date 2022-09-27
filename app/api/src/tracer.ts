@@ -1,83 +1,92 @@
+import { serviceName } from './constants';
 import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
   trace,
-  // Attributes,
-  // SpanKind,
+  Attributes,
+  SpanKind,
 } from '@opentelemetry/api';
 
 import {
   SimpleSpanProcessor,
-  // AlwaysOnSampler,
-  // Sampler,
-  // SamplingDecision,
+  AlwaysOnSampler,
+  Sampler,
+  SamplingDecision,
 } from '@opentelemetry/sdk-trace-base';
 
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import {
+  NodeTracerProvider,
+  NodeTracerConfig,
+} from '@opentelemetry/sdk-trace-node';
 import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+
+import {
+  SemanticResourceAttributes,
+  SemanticAttributes,
+} from '@opentelemetry/semantic-conventions';
+
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
+import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
+
+type FilterFunction = (
+  spanName: string,
+  spanKind: SpanKind,
+  attributes: Attributes
+) => boolean;
+
+function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
+  return {
+    shouldSample(ctx, tid, spanName, spanKind, attr, links) {
+      if (!filterFn(spanName, spanKind, attr)) {
+        return { decision: SamplingDecision.NOT_RECORD };
+      }
+      return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
+    },
+    toString() {
+      return `FilterSampler(${parent.toString()})`;
+    },
+  };
+}
+
+function ignoreHealthCheck(
+  _spanName: string,
+  spanKind: SpanKind,
+  attributes: Attributes
+) {
+  return (
+    spanKind !== SpanKind.SERVER ||
+    attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
+  );
+}
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
-export const setupTracing = (serviceName: string) => {
-  const provider = new NodeTracerProvider({
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-    }),
-    // sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
-  });
-
-  registerInstrumentations({
-    tracerProvider: provider,
-    instrumentations: [
-      // Express instrumentation expects HTTP layer to be instrumented
-      new HttpInstrumentation(),
-      new ExpressInstrumentation(),
-    ],
-  });
-
-  const exporter = new TraceExporter();
-
-  provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
-
-  // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
-
-  return trace.getTracer(serviceName);
+const tracerConfig: NodeTracerConfig = {
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+  }),
+  sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
 };
 
-// type FilterFunction = (
-//   spanName: string,
-//   spanKind: SpanKind,
-//   attributes: Attributes
-// ) => boolean;
+const provider = new NodeTracerProvider(tracerConfig);
 
-// function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
-//   return {
-//     shouldSample(ctx, tid, spanName, spanKind, attr, links) {
-//       if (!filterFn(spanName, spanKind, attr)) {
-//         return { decision: SamplingDecision.NOT_RECORD };
-//       }
-//       return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
-//     },
-//     toString() {
-//       return `FilterSampler(${parent.toString()})`;
-//     },
-//   };
-// }
+const propagator = new CloudPropagator();
 
-// function ignoreHealthCheck(
-//   _spanName: string,
-//   spanKind: SpanKind,
-//   attributes: Attributes
-// ) {
-//   return (
-//     spanKind !== SpanKind.SERVER ||
-//     attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
-//   );
-// }
+const exporter = new TraceExporter();
+
+provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+
+registerInstrumentations({
+  tracerProvider: provider,
+  instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
+});
+
+provider.register({ propagator });
+
+const tracer = trace.getTracer(serviceName);
+
+export default tracer;

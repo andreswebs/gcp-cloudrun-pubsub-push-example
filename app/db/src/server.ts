@@ -1,3 +1,5 @@
+import './tracer';
+
 import { listenForMessages, handleSignals } from './utils';
 
 import { port, pull } from './constants';

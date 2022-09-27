@@ -1,83 +1,114 @@
+import { serviceName } from './constants';
+
 import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
   trace,
-  // Attributes,
-  // SpanKind,
+  Attributes,
+  SpanKind,
 } from '@opentelemetry/api';
 
 import {
   SimpleSpanProcessor,
-  // AlwaysOnSampler,
-  // Sampler,
-  // SamplingDecision,
+  AlwaysOnSampler,
+  Sampler,
+  SamplingDecision,
 } from '@opentelemetry/sdk-trace-base';
 
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+
+import {
+  SemanticResourceAttributes,
+  SemanticAttributes,
+} from '@opentelemetry/semantic-conventions';
+
+import {
+  HttpInstrumentation,
+  HttpInstrumentationConfig,
+} from '@opentelemetry/instrumentation-http';
+
+import {
+  ExpressInstrumentation,
+  ExpressInstrumentationConfig,
+} from '@opentelemetry/instrumentation-express';
+
+import {
+  MongooseInstrumentation,
+  MongooseInstrumentationConfig,
+} from 'opentelemetry-instrumentation-mongoose';
+
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
+import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
+
+type FilterFunction = (
+  spanName: string,
+  spanKind: SpanKind,
+  attributes: Attributes
+) => boolean;
+
+function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
+  return {
+    shouldSample(ctx, tid, spanName, spanKind, attr, links) {
+      if (!filterFn(spanName, spanKind, attr)) {
+        return { decision: SamplingDecision.NOT_RECORD };
+      }
+      return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
+    },
+    toString() {
+      return `FilterSampler(${parent.toString()})`;
+    },
+  };
+}
+
+function ignoreHealthCheck(
+  _spanName: string,
+  spanKind: SpanKind,
+  attributes: Attributes
+) {
+  return (
+    spanKind !== SpanKind.SERVER ||
+    attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
+  );
+}
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
-export const setupTracing = (serviceName: string) => {
-  const provider = new NodeTracerProvider({
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-    }),
-    // sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
-  });
+const propagator = new CloudPropagator();
 
-  registerInstrumentations({
-    tracerProvider: provider,
-    instrumentations: [
-      // Express instrumentation expects HTTP layer to be instrumented
-      new HttpInstrumentation(),
-      new ExpressInstrumentation(),
-    ],
-  });
+const provider = new NodeTracerProvider({
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+  }),
+  sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
+});
 
-  const exporter = new TraceExporter();
+const exporter = new TraceExporter();
 
-  provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
-  // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
+const httpConfig: HttpInstrumentationConfig = {};
+const mongooseConfig: MongooseInstrumentationConfig = {};
 
-  return trace.getTracer(serviceName);
+const expressConfig: ExpressInstrumentationConfig = {
+  requestHook: (span, info) => {
+    span.setAttribute('request-headers', JSON.stringify(info.request.headers));
+  },
 };
 
-// type FilterFunction = (
-//   spanName: string,
-//   spanKind: SpanKind,
-//   attributes: Attributes
-// ) => boolean;
+registerInstrumentations({
+  tracerProvider: provider,
+  instrumentations: [
+    new HttpInstrumentation(httpConfig),
+    new ExpressInstrumentation(expressConfig),
+    new MongooseInstrumentation(mongooseConfig),
+  ],
+});
 
-// function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
-//   return {
-//     shouldSample(ctx, tid, spanName, spanKind, attr, links) {
-//       if (!filterFn(spanName, spanKind, attr)) {
-//         return { decision: SamplingDecision.NOT_RECORD };
-//       }
-//       return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
-//     },
-//     toString() {
-//       return `FilterSampler(${parent.toString()})`;
-//     },
-//   };
-// }
+provider.register({ propagator });
 
-// function ignoreHealthCheck(
-//   _spanName: string,
-//   spanKind: SpanKind,
-//   attributes: Attributes
-// ) {
-//   return (
-//     spanKind !== SpanKind.SERVER ||
-//     attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
-//   );
-// }
+const tracer = trace.getTracer(serviceName);
+
+export default tracer;

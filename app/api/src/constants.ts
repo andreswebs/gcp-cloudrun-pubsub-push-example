@@ -1,3 +1,5 @@
+const serviceName = 'api';
+
 const signals = {
   SIGHUP: 1,
   SIGINT: 2,
@@ -14,4 +16,4 @@ if (!topicName) {
   throw new Error(`${errMsg}: TOPIC_NAME`);
 }
 
-export { signals, port, topicName };
+export { signals, port, topicName, serviceName };

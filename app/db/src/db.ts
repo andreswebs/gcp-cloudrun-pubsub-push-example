@@ -7,6 +7,7 @@ const mongoOptions = { connectTimeoutMS: 40000 };
 const messageSchema = new Schema({
   msgId: { type: String, required: true },
   msg: { type: String },
+  luck: { type: Number },
   attributes: { type: Object },
 });
 

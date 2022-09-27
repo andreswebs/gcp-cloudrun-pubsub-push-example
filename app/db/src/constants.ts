@@ -1,3 +1,5 @@
+const serviceName = 'db';
+
 const signals = {
   SIGHUP: 1,
   SIGINT: 2,
@@ -68,4 +70,12 @@ const mongoRSOpts = (() => {
 
 const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?authSource=${mongoAuthSourceDB}${mongoRSOpts}${mongoTLSOpts}`;
 
-export { signals, port, pull, subscriptionNameOrId, timeout, mongoURI };
+export {
+  signals,
+  port,
+  pull,
+  subscriptionNameOrId,
+  timeout,
+  mongoURI,
+  serviceName,
+};

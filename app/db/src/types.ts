@@ -1,4 +1,4 @@
-interface PubSubMessage {
+interface PubSubHTTPMessage {
   attributes: Record<string, string>;
   data: string;
   messageId: string;
@@ -8,8 +8,8 @@ interface PubSubMessage {
 }
 
 interface PubSubReqBody {
-  message: PubSubMessage;
+  message: PubSubHTTPMessage;
   subscription: string;
 }
 
-export { PubSubReqBody };
+export { PubSubReqBody, PubSubHTTPMessage };

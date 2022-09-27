@@ -1,20 +1,14 @@
-import { setupTracing } from './tracer';
-setupTracing('db');
-
 import express from 'express';
 
 import { PubSubReqBody } from './types';
 import { createMessage } from './utils';
+import { logger } from './middleware';
 
 const app = express();
 
 app.use(express.json());
 
-// logger
-app.use('/', (req, _res, next) => {
-  console.log(`[${req.method}] ${req.originalUrl}`);
-  return next();
-});
+app.use(logger);
 
 app.get('/health', (_req, res) => {
   res.status(204).send('healthy');
@@ -37,6 +31,7 @@ app.post('/', (req, res) => {
   const body: PubSubReqBody = req.body;
 
   const message = body.message;
+
   const data = JSON.parse(
     message.data ? Buffer.from(message.data, 'base64').toString().trim() : ''
   );
@@ -45,6 +40,7 @@ app.post('/', (req, res) => {
     createMessage({
       msgId: message.messageId,
       msg: data.msg,
+      luck: parseInt(data.luck),
       attributes: message.attributes,
     }).catch(console.error);
   }

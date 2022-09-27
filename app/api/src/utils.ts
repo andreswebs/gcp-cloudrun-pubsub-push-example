@@ -11,7 +11,9 @@ const topic = pubSubClient.topic(topicName, {
 
 async function publishMessage(msg: string) {
   const data = Buffer.from(msg);
-  const messageId = await topic.publishMessage({ data });
+  const messageId = await topic.publishMessage({
+    data,
+  });
   console.log(`Message ${messageId} published.`);
   return messageId;
 }

@@ -1,3 +1,8 @@
+// import { setupTracing } from './tracer';
+// setupTracing('api');
+
+import './tracer';
+
 import { port } from './constants';
 
 import { handleSignals } from './utils';
