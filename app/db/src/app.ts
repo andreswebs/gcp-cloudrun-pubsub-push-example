@@ -10,11 +10,13 @@ app.use(express.json());
 
 app.use(logger);
 
+app.use('/', pubsubContext);
+
 app.get('/health', (_req, res) => {
   res.status(204).send('healthy');
 });
 
-app.post('/', pubsubContext, (req, res) => {
+app.post('/', (req, res) => {
   if (!req.body) {
     const msg = 'no Pub/Sub message received';
     console.error(`error: ${msg}`);

@@ -2,11 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { CloudPubSubPropagator } from './opentelemetry-gcp-pubsub-propagator';
 
-import {
-  context,
-  ROOT_CONTEXT,
-  defaultTextMapGetter,
-} from '@opentelemetry/api';
+import { context, defaultTextMapGetter } from '@opentelemetry/api';
 
 function logger(req: Request, _res: Response, next: NextFunction) {
   console.log(`[${req.method}] ${req.originalUrl}`);
@@ -15,12 +11,21 @@ function logger(req: Request, _res: Response, next: NextFunction) {
 
 function pubsubContext(req: Request, _res: Response, next: NextFunction) {
   const propagator = new CloudPubSubPropagator();
-  const currentContext = context.active() || ROOT_CONTEXT;
-  propagator.extract(
+  const currentContext = context.active();
+  const carrier = { ...req.body.message.attributes };
+
+  const parentContext = propagator.extract(
     currentContext,
-    req.body.message.attributes,
+    carrier,
     defaultTextMapGetter
   );
+
+  console.log('pubsubContext middleware:');
+
+  console.log(`Carrier:\n${JSON.stringify(carrier, null, 2)}`);
+
+  console.log(`Extract operation:\n${JSON.stringify(parentContext, null, 2)}`);
+
   next();
 }
 

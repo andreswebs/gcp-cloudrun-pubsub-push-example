@@ -2,7 +2,7 @@ import { Schema, InferSchemaType, createConnection } from 'mongoose';
 
 import { mongoURI } from './constants';
 
-const mongoOptions = { connectTimeoutMS: 40000 };
+const mongoOptions = { connectTimeoutMS: 100000 };
 
 const messageSchema = new Schema({
   msgId: { type: String, required: true },
@@ -29,7 +29,7 @@ conn.on('disconnected', () => {
 
 const Message = conn.model<MessageSchema>('Message', messageSchema);
 
-const db = { Message };
+const db = { Message, connection: conn.asPromise() };
 
 export default db;
 

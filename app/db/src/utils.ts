@@ -1,3 +1,4 @@
+import { provider } from './tracer';
 import { PubSub, Message } from '@google-cloud/pubsub';
 import db, { MessageSchema } from './db';
 
@@ -15,6 +16,7 @@ async function sleep(waitMilliseconds: number) {
 }
 
 async function createMessage(data: MessageSchema) {
+  await db.connection;
   return db.Message.create(data);
 }
 
@@ -23,17 +25,18 @@ async function listenForMessages() {
 
   let poll = true;
 
-  const stopListen = (signal: string, value: number) => {
+  const stopListen = async (signal: string, value: number) => {
     console.log('shutdown');
     console.log(`stopped by ${signal}`);
     poll = false;
+    await provider.shutdown();
     process.exit(128 + value);
   };
 
   Object.keys(signals).forEach((signal) => {
-    process.on(signal, () => {
+    process.on(signal, async () => {
       console.log(`\nreceived ${signal}`);
-      stopListen(signal, signals[signal]);
+      await stopListen(signal, signals[signal]);
     });
   });
 
@@ -66,7 +69,8 @@ async function listenForMessages() {
 const handleSignals = (server: Server) => {
   const shutdown = (signal: string, value: number) => {
     console.log('shutdown');
-    server.close(() => {
+    server.close(async () => {
+      await provider.shutdown();
       console.log(`stopped by ${signal}`);
       process.exit(128 + value);
     });

@@ -1,4 +1,5 @@
 import { serviceName } from './constants';
+
 import {
   diag,
   DiagConsoleLogger,
@@ -16,10 +17,12 @@ import {
 } from '@opentelemetry/sdk-trace-base';
 
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
+
 import {
   NodeTracerProvider,
   NodeTracerConfig,
 } from '@opentelemetry/sdk-trace-node';
+
 import { Resource } from '@opentelemetry/resources';
 
 import {
@@ -80,13 +83,13 @@ const exporter = new TraceExporter();
 
 provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
+provider.register({ propagator });
+
 registerInstrumentations({
-  tracerProvider: provider,
   instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
 });
-
-provider.register({ propagator });
 
 const tracer = trace.getTracer(serviceName);
 
 export default tracer;
+export { tracer, provider };

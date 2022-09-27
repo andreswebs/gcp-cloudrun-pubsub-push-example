@@ -4,6 +4,7 @@ import {
   trace,
   TextMapSetter,
   TextMapGetter,
+  SpanContext,
 } from '@opentelemetry/api';
 
 export const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
@@ -38,7 +39,11 @@ class CloudPubSubPropagator implements TextMapPropagator {
         return context;
       }
 
-      const spanContext = JSON.parse(traceContextAttributeValue);
+      const spanContext: SpanContext = JSON.parse(traceContextAttributeValue);
+
+      console.log(
+        `CloudPubSubPropagator: spanContext:\n${JSON.stringify(spanContext)}`
+      );
 
       return trace.setSpanContext(context, spanContext);
     } catch (e) {
