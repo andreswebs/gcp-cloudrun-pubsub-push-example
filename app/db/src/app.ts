@@ -2,15 +2,13 @@ import express from 'express';
 
 import { PubSubReqBody } from './types';
 import { createMessage } from './utils';
-import { logger, pubsubContext } from './middleware';
+import { logger } from './middleware';
 
 const app = express();
 
 app.use(express.json());
 
 app.use(logger);
-
-app.use('/', pubsubContext);
 
 app.get('/health', (_req, res) => {
   res.status(204).send('healthy');
