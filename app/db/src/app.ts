@@ -2,7 +2,7 @@ import express from 'express';
 
 import { PubSubReqBody } from './types';
 import { createMessage } from './utils';
-import { logger } from './middleware';
+import { logger, pubsubContext } from './middleware';
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.get('/health', (_req, res) => {
   res.status(204).send('healthy');
 });
 
-app.post('/', (req, res) => {
+app.post('/', pubsubContext, (req, res) => {
   if (!req.body) {
     const msg = 'no Pub/Sub message received';
     console.error(`error: ${msg}`);

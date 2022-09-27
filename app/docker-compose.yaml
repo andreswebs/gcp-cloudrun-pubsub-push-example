@@ -1,11 +1,8 @@
 ---
 version: '3'
 
-networks:
-  mongodb:
-    driver: bridge
-
 services:
+
   api:
     build:
       context: ./api
@@ -22,6 +19,7 @@ services:
       - /gcp/config/logs
     ports:
       - 3001:8080
+      
   db:
     build:
       context: ./db
@@ -31,24 +29,17 @@ services:
       - CLOUDSDK_CONFIG=/gcp/config
       - GCLOUD_PROJECT=${CLOUDSDK_CORE_PROJECT}
       - GOOGLE_APPLICATION_CREDENTIALS=/gcp/config/application_default_credentials.json
-      - MONGO_HOST=mongo:27017
-      - MONGO_DATABASE=otel_poc
-      - MONGO_USERNAME=app
+      - MONGO_HOST
+      - MONGO_DATABASE
+      - MONGO_USERNAME
       - MONGO_PASSWORD
+      - MONGO_REPLICA_SET
+      - MONGO_TLS_CA_CRT=/etc/mongodb-tls/ca.crt
+      - MONGO_TLS_KEY=/etc/mongodb-tls/tls.pem
+      - MONGO_TLS_KEY_PASSWORD
       - SUBSCRIPTION
       - PULL=true
     volumes:
       - ~/.config/gcloud:/gcp/config:ro
       - /gcp/config/logs
-      - ./data:/data
-    networks:
-      - mongodb
-  mongo:
-    image: mongo:latest
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=app
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-    ports:
-      - 27017:27017
-    networks:
-      - mongodb
+      - ./certs:/etc/mongodb-tls
