@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { CloudPubSubPropagator } from './opentelemetry-gcp-pubsub-propagator';
+import { tracer } from './tracer';
 
-import { context, defaultTextMapGetter } from '@opentelemetry/api';
+import { context, trace } from '@opentelemetry/api';
 
 function logger(req: Request, _res: Response, next: NextFunction) {
   console.log(`[${req.method}] ${req.originalUrl}`);
@@ -10,21 +10,22 @@ function logger(req: Request, _res: Response, next: NextFunction) {
 }
 
 function pubsubContext(req: Request, _res: Response, next: NextFunction) {
-  const propagator = new CloudPubSubPropagator();
-  const currentContext = context.active();
-  const carrier = { ...req.body.message.attributes };
+  const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
 
-  const parentContext = propagator.extract(
-    currentContext,
-    carrier,
-    defaultTextMapGetter
-  );
+  const attributes = req.body.message.attributes;
 
-  console.log('pubsubContext middleware:');
+  try {
+    const spanContext = JSON.parse(attributes[otelPubSubAttribute]);
 
-  console.log(`Carrier:\n${JSON.stringify(carrier, null, 2)}`);
+    const ctx = trace.setSpanContext(context.active(), spanContext);
 
-  console.log(`Extract operation:\n${JSON.stringify(parentContext, null, 2)}`);
+    const span = tracer.startSpan('pubsub message', {}, ctx);
+    console.log(`pubsubContext:\n${JSON.stringify(span.spanContext())}`);
+
+    req.app.locals.opentelemetry = { span };
+  } catch (e) {
+    console.error(e);
+  }
 
   next();
 }

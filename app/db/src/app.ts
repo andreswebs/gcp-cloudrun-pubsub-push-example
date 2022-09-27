@@ -2,7 +2,8 @@ import express from 'express';
 
 import { PubSubReqBody } from './types';
 import { createMessage } from './utils';
-import { logger } from './middleware';
+import { logger, pubsubContext } from './middleware';
+import { Span } from '@opentelemetry/sdk-trace-base';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.get('/health', (_req, res) => {
   res.status(204).send('healthy');
 });
 
-app.post('/', (req, res) => {
+app.post('/', pubsubContext, (req, res) => {
   if (!req.body) {
     const msg = 'no Pub/Sub message received';
     console.error(`error: ${msg}`);
@@ -43,6 +44,12 @@ app.post('/', (req, res) => {
       luck: parseInt(data.luck),
       attributes: message.attributes,
     }).catch(console.error);
+  }
+
+  const span: Span = req.app.locals.opentelemetry.span;
+
+  if (span) {
+    span.end();
   }
 
   res.status(204).send('ok');
