@@ -17,7 +17,19 @@ async function sleep(waitMilliseconds: number) {
 
 async function createMessage(data: MessageSchema) {
   await db.connection;
-  db.Message.create(data);
+  console.log(`createMessage`);
+  const res = await db.Message.create(data);
+  const query = db.Message.findById(res._id);
+
+  const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
+
+  const otel = data.attributes[otelPubSubAttribute];
+
+  if (otel) {
+    query.comment(`opentelemetry: ${otel}`);
+  }
+
+  query.exec();
 }
 
 async function listenForMessages() {
