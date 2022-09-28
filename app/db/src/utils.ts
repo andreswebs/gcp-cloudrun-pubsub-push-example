@@ -17,7 +17,7 @@ async function sleep(waitMilliseconds: number) {
 
 async function createMessage(data: MessageSchema) {
   await db.connection;
-  return db.Message.create(data);
+  db.Message.create(data);
 }
 
 async function listenForMessages() {

@@ -1,9 +1,9 @@
 # Serverless GCP Pub/Sub Example
 
 This is an example serverless application running on GCP Cloud Run and using
-MongoDB Atlas as a database:
+MongoDB as a database:
 
-![GCP Cloud Run PubSub Example](docs/diagrams/gcp-cloud-run-pubsub-example.png "example")
+![GCP Cloud Run PubSub Example](docs/diagrams/gcp-cloud-run-pubsub-push-example.png "example")
 
 The application consists of a publisher (`app: API`) and a subscriber
 (`app: DB`), which publish and read from a GCP Pub/Sub topic (`api-events`). The
@@ -43,7 +43,9 @@ cd apps/db
 Use the built image tags to populate the relevant Terraform variables (see
 below).
 
-## Configuration
+## Infrastructure
+
+Infrastructure is managed with Terraform.
 
 The following TF_VARs are required:
 
@@ -53,11 +55,12 @@ The following TF_VARs are required:
 - `container_image_db`: container image tag for the DB application (in GCP
   Artifact Registry)
 
-## TODO:
+To deploy, run:
 
-- HTTP load balancer
-- Serverless VPC Access connector (for static outbound IP)
-- Cloud Run static outbound IP address whitelist in Atlas
+```sh
+cd terraform
+terraform apply
+```
 
 ## Authors
 

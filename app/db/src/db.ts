@@ -19,8 +19,8 @@ conn.on('connected', () => {
   console.log('DB connection open');
 });
 
-conn.on('error', (err) => {
-  console.log(`DB connection error: ${err}`);
+conn.on('error', (err: Error) => {
+  console.log(`DB connection error: ${err.message}`);
 });
 
 conn.on('disconnected', () => {
