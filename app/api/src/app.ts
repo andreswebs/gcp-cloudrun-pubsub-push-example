@@ -11,11 +11,12 @@ import errorHandler from './middleware/error-handler';
 const app = express();
 
 app.use(express.json());
-app.use(logger);
 
 app.get('/health', (_req, res) => {
   res.status(200).json({ msg: 'healthy' });
 });
+
+app.use(logger);
 
 app.get('/msg', query('msg').trim().escape(), async (req, res, next) => {
   const luck = Math.floor(Math.random() * 100);
@@ -29,7 +30,7 @@ app.get('/msg', query('msg').trim().escape(), async (req, res, next) => {
 });
 
 app.get('/', (_req, res) => {
-  res.status(204).end();
+  res.status(204).send();
 });
 
 app.use(notFound);

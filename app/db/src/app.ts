@@ -11,15 +11,12 @@ import errorHandler from './middleware/error-handler';
 const app = express();
 
 app.use(express.json());
-app.use(logger);
 
 app.get('/health', (_req, res) => {
   res.status(200).json({ msg: 'healthy' });
 });
 
-app.get('/', (_req, res) => {
-  res.status(204).end();
-});
+app.use(logger);
 
 app.post('/', pubsubContext, async (req, res, next) => {
   if (!req.body) {
@@ -56,10 +53,14 @@ app.post('/', pubsubContext, async (req, res, next) => {
       attributes: message.attributes,
     });
 
-    res.status(204).end();
+    res.status(204).send();
   } catch (e) {
     next(new HTTPError(500, `${e.name}: ${e.message}`));
   }
+});
+
+app.get('/', (_req, res) => {
+  res.status(204).send();
 });
 
 app.use(notFound);

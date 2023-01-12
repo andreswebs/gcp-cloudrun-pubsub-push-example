@@ -54,6 +54,7 @@ locals {
 }
 
 resource "google_cloud_run_service" "db" {
+  provider = google-beta
   name     = "db"
   location = var.region
   template {
@@ -72,6 +73,12 @@ resource "google_cloud_run_service" "db" {
 
       containers {
         image = var.container_image_db
+
+        liveness_probe {
+          http_get {
+            path = "/health"
+          }
+        }
 
         env {
           name  = "MONGO_USERNAME"

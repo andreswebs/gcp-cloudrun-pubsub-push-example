@@ -11,6 +11,7 @@ resource "google_pubsub_topic_iam_member" "api_publisher" {
 }
 
 resource "google_cloud_run_service" "api" {
+  provider = google-beta
   name     = "api"
   location = var.region
   template {
@@ -29,6 +30,12 @@ resource "google_cloud_run_service" "api" {
 
       containers {
         image = var.container_image_api
+
+        liveness_probe {
+          http_get {
+            path = "/health"
+          }
+        }
 
         env {
           name  = "TOPIC_NAME"

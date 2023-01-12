@@ -10,7 +10,8 @@ import {
 } from '@opentelemetry/api';
 
 import {
-  SimpleSpanProcessor,
+  // SimpleSpanProcessor,
+  BatchSpanProcessor,
   AlwaysOnSampler,
   Sampler,
   SamplingDecision,
@@ -78,7 +79,8 @@ const tracerConfig: NodeTracerConfig = {
 
 const provider = new NodeTracerProvider(tracerConfig);
 const exporter = new TraceExporter();
-const processor = new SimpleSpanProcessor(exporter);
+// const processor = new SimpleSpanProcessor(exporter);
+const processor = new BatchSpanProcessor(exporter);
 const propagator = new CloudPropagator();
 
 provider.addSpanProcessor(processor);

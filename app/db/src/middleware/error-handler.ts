@@ -12,10 +12,9 @@ function errorHandler(
   res: Response,
   _next: NextFunction // eslint-disable-line @typescript-eslint/no-unused-vars
 ) {
-  console.error(`${err.name}: ${err.message}`);
+  console.error(JSON.stringify({ error: `${err.name}: ${err.message}` }));
 
   const isHTTPError = err instanceof HTTPError;
-
   const status = isHTTPError ? err.status : 500;
   const msg = isHTTPError
     ? err.expose
@@ -35,11 +34,11 @@ function errorHandler(
       currentSpan.setStatus({ code: SpanStatusCode.ERROR });
     }
   } catch (e) {
-    console.error(`Error setting up OTel: ${e.message}`);
+    console.error(JSON.stringify({ error: `${e.name}: ${e.message}` }));
   }
 
   // error response
-  return res.status(status).send({
+  return res.status(status).json({
     error: msg,
   });
 }

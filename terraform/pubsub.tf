@@ -6,13 +6,15 @@ resource "google_pubsub_topic" "api_events" {
 }
 
 resource "google_pubsub_subscription" "api_events_db" {
-  name  = var.topic_name
-  topic = google_pubsub_topic.api_events.name
+  name                 = var.topic_name
+  topic                = google_pubsub_topic.api_events.name
+  ack_deadline_seconds = 600
 }
 
 resource "google_pubsub_subscription" "api_events_db_push" {
-  name  = "${var.topic_name}-push"
-  topic = google_pubsub_topic.api_events.name
+  name                 = "${var.topic_name}-push"
+  topic                = google_pubsub_topic.api_events.name
+  ack_deadline_seconds = 600
   push_config {
     push_endpoint = google_cloud_run_service.db.status[0].url
     oidc_token {
