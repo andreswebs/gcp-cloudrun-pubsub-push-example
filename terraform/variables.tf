@@ -99,7 +99,7 @@ variable "mongodb_tls_ca_crt_secret" {
 variable "mongodb_tls_key_secret" {
   type        = string
   description = "Name of secret containing TLS certificate and key"
-  default     = "tls_key"
+  default     = "tls_pem"
 }
 
 variable "mongodb_tls_key_password_secret" {
