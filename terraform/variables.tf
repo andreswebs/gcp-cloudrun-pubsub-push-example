@@ -21,22 +21,10 @@ variable "serverless_connector_name" {
   default     = null
 }
 
-variable "project_network" {
-  type        = string
-  description = "Network on which to connect resources"
-  default     = "default"
-}
-
 variable "topic_name" {
   type        = string
   description = "API events topic name"
   default     = "api-events"
-}
-
-variable "container_repo" {
-  type        = string
-  description = "Name of container repository"
-  default     = "default"
 }
 
 variable "container_image_db" {
@@ -80,14 +68,14 @@ variable "mongodb_replica_set" {
 
 variable "mongodb_database" {
   type        = string
-  default     = "app"
   description = "MongoDB database name"
+  default     = "app"
 }
 
 variable "mongodb_proto" {
   type        = string
-  default     = "mongodb"
   description = "MongoDB Protocol"
+  default     = "mongodb"
 
   validation {
     condition     = can(regex("^mongodb", var.mongodb_proto))
@@ -105,19 +93,19 @@ variable "mongodb_tls_dir" {
 variable "mongodb_tls_ca_crt_secret" {
   type        = string
   description = "Name of secret containing CA certificate"
-  default     = null
+  default     = "ca_crt"
 }
 
 variable "mongodb_tls_key_secret" {
   type        = string
   description = "Name of secret containing TLS certificate and key"
-  default     = null
+  default     = "tls_key"
 }
 
 variable "mongodb_tls_key_password_secret" {
   type        = string
   description = "Name of secret containing TLS private key"
-  default     = null
+  default     = "tls_key_pw"
 }
 
 variable "mongodb_tls_key_password_secret_version" {
