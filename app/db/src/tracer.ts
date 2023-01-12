@@ -11,8 +11,8 @@ import {
 
 import {
   // ConsoleSpanExporter,
-  // SimpleSpanProcessor,
-  BatchSpanProcessor,
+  SimpleSpanProcessor,
+  // BatchSpanProcessor,
   AlwaysOnSampler,
   Sampler,
   SamplingDecision,
@@ -81,13 +81,11 @@ const tracerConfig: NodeTracerConfig = {
 };
 
 const provider = new NodeTracerProvider(tracerConfig);
-
 const exporter = new TraceExporter();
+// const processor = new BatchSpanProcessor(exporter);
+const processor = new SimpleSpanProcessor(exporter);
 
-provider.addSpanProcessor(new BatchSpanProcessor(exporter));
-// provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-
-provider.register({ propagator });
+provider.addSpanProcessor(processor);
 
 registerInstrumentations({
   instrumentations: [
@@ -96,6 +94,8 @@ registerInstrumentations({
     new MongooseInstrumentation(),
   ],
 });
+
+provider.register({ propagator });
 
 const tracer = trace.getTracer(serviceName);
 

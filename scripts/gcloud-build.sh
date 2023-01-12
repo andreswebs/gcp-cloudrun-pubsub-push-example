@@ -1,16 +1,15 @@
 #! /usr/bin/env bash
 
-# shellcheck disable=SC1090,SC2005
-
 set -o errexit
 set -o pipefail
 set -o nounset
 
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONTAINER_REGISTRY="${CONTAINER_REGISTRY:-europe-docker.pkg.dev}"
+CONTAINER_REPO="${CONTAINER_REPO:-default}"
 
 IMAGE_NAME="${1}"
 IMAGE_VERSION="${2:-latest}"
 
-IMAGE="$("${_SCRIPT_DIR}/config.sh" "${IMAGE_NAME}" "${IMAGE_VERSION}")"
+IMAGE="${CONTAINER_REGISTRY}/${CLOUDSDK_CORE_PROJECT}/${CONTAINER_REPO}/${IMAGE_NAME}:${IMAGE_VERSION}"
 
 gcloud builds submit --tag "${IMAGE}"

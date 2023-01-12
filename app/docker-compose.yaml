@@ -1,6 +1,4 @@
 ---
-version: '3'
-
 services:
 
   api:
@@ -19,7 +17,7 @@ services:
       - /gcp/config/logs
     ports:
       - 3001:8080
-      
+
   db:
     build:
       context: ./db

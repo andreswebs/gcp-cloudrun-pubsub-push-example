@@ -1,58 +1,64 @@
 import express from 'express';
-
 import { PubSubReqBody } from './types';
-import { createMessage } from './utils';
-import { logger, pubsubContext } from './middleware';
-import { Span } from '@opentelemetry/sdk-trace-base';
+import { saveMessage } from './utils';
+import { HTTPError } from './errors';
+
+import logger from './middleware/logger';
+import pubsubContext from './middleware/pubsub-context';
+import notFound from './middleware/not-found';
+import errorHandler from './middleware/error-handler';
 
 const app = express();
 
 app.use(express.json());
-
 app.use(logger);
 
 app.get('/health', (_req, res) => {
-  res.status(204).send('healthy');
+  res.status(204).send();
 });
 
-app.post('/', pubsubContext, (req, res) => {
+app.post('/', pubsubContext, async (req, res, next) => {
   if (!req.body) {
-    const msg = 'no Pub/Sub message received';
-    console.error(`error: ${msg}`);
-    res.status(400).send(`Bad Request: ${msg}`);
-    return;
+    next(new HTTPError(400, 'no Pub/Sub message received', { expose: true }));
   }
+
   if (!req.body.message) {
-    const msg = 'invalid Pub/Sub message format';
-    console.error(`error: ${msg}`);
-    res.status(400).send(`Bad Request: ${msg}`);
-    return;
+    next(
+      new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
+    );
   }
 
   const body: PubSubReqBody = req.body;
 
   const message = body.message;
 
-  const data = JSON.parse(
-    message.data ? Buffer.from(message.data, 'base64').toString().trim() : ''
-  );
+  try {
+    const data = JSON.parse(
+      message.data
+        ? Buffer.from(message.data, 'base64').toString().trim()
+        : null
+    );
 
-  if (data) {
-    createMessage({
+    if (!data) {
+      next(
+        new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
+      );
+    }
+
+    await saveMessage({
       msgId: message.messageId,
       msg: data.msg,
       luck: parseInt(data.luck),
       attributes: message.attributes,
-    }).catch(console.error);
+    });
+
+    res.status(204).send();
+  } catch (e) {
+    next(new HTTPError(500, `${e.name}: ${e.message}`));
   }
-
-  const span: Span = req.app.locals.opentelemetry.span;
-
-  if (span) {
-    span.end();
-  }
-
-  res.status(204).send('ok');
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;

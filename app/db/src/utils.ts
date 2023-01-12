@@ -1,9 +1,15 @@
-import { provider } from './tracer';
+import { Server } from 'node:http';
 import { PubSub, Message } from '@google-cloud/pubsub';
 import db, { MessageSchema } from './db';
+import { provider } from './tracer';
+import { SpanContext } from '@opentelemetry/api';
 
-import { signals, timeout, subscriptionNameOrId } from './constants';
-import { Server } from 'http';
+import {
+  signals,
+  timeout,
+  subscriptionNameOrId,
+  otelPubSubAttribute,
+} from './constants';
 
 const pubSubClient = new PubSub();
 
@@ -15,13 +21,14 @@ async function sleep(waitMilliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
 }
 
-async function createMessage(data: MessageSchema) {
+/**
+ * Save Pub/Sub message to database
+ */
+async function saveMessage(data: MessageSchema) {
   await db.connection;
-  console.log(`createMessage`);
+  console.log(`[saveMessage]:\n${JSON.stringify(data, null, 2)}`);
   const res = await db.Message.create(data);
   const query = db.Message.findById(res._id);
-
-  const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
 
   const otel = data.attributes[otelPubSubAttribute];
 
@@ -29,7 +36,7 @@ async function createMessage(data: MessageSchema) {
     query.comment(`opentelemetry: ${otel}`);
   }
 
-  query.exec();
+  await query.exec();
 }
 
 async function listenForMessages() {
@@ -38,16 +45,14 @@ async function listenForMessages() {
   let poll = true;
 
   const stopListen = async (signal: string, value: number) => {
-    console.log('shutdown');
-    console.log(`stopped by ${signal}`);
     poll = false;
     await provider.shutdown();
+    console.log(`stopped by ${signal}`);
     process.exit(128 + value);
   };
 
   Object.keys(signals).forEach((signal) => {
     process.on(signal, async () => {
-      console.log(`\nreceived ${signal}`);
       await stopListen(signal, signals[signal]);
     });
   });
@@ -59,7 +64,7 @@ async function listenForMessages() {
     console.log(`Attributes: ${JSON.stringify(message.attributes, null, 2)}`);
     messageCount += 1;
 
-    createMessage({
+    saveMessage({
       msgId: message.id,
       msg: data.msg,
       attributes: message.attributes,
@@ -78,22 +83,38 @@ async function listenForMessages() {
   }
 }
 
-const handleSignals = (server: Server) => {
-  const shutdown = (signal: string, value: number) => {
-    console.log('shutdown');
-    server.close(async () => {
-      await provider.shutdown();
+/**
+ * Handle linux signals
+ */
+function handleSignals(server: Server) {
+  const shutdown = async (signal: string, value: number) => {
+    await provider.shutdown();
+    server.close(() => {
       console.log(`stopped by ${signal}`);
       process.exit(128 + value);
     });
   };
 
   Object.keys(signals).forEach((signal) => {
-    process.on(signal, () => {
-      console.log(`\nreceived ${signal}`);
-      shutdown(signal, signals[signal]);
+    process.on(signal, async () => {
+      await shutdown(signal, signals[signal]);
     });
   });
-};
+}
 
-export { listenForMessages, createMessage, handleSignals };
+/**
+ * Get OTel span context from Google Cloud Pub/Sub message attribute
+ */
+function getSpanContext(message: Message): SpanContext | undefined {
+  const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
+  if (message.attributes) {
+    try {
+      return JSON.parse(message.attributes[otelPubSubAttribute]);
+    } catch (error) {
+      console.error(error);
+      return;
+    }
+  }
+}
+
+export { listenForMessages, saveMessage, handleSignals, getSpanContext };

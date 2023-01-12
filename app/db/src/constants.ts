@@ -70,6 +70,8 @@ const mongoRSOpts = (() => {
 
 const mongoURI = `${mongoProto}://${mongoUser}:${mongoPass}@${mongoHost}/${mongoDatabase}?authSource=${mongoAuthSourceDB}${mongoRSOpts}${mongoTLSOpts}`;
 
+const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
+
 export {
   signals,
   port,
@@ -78,4 +80,5 @@ export {
   timeout,
   mongoURI,
   serviceName,
+  otelPubSubAttribute,
 };

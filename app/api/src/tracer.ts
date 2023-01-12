@@ -32,6 +32,7 @@ import {
 
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
 import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
 
@@ -66,7 +67,7 @@ function ignoreHealthCheck(
   );
 }
 
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 
 const tracerConfig: NodeTracerConfig = {
   resource: new Resource({
@@ -76,18 +77,17 @@ const tracerConfig: NodeTracerConfig = {
 };
 
 const provider = new NodeTracerProvider(tracerConfig);
-
+const exporter = new TraceExporter();
+const processor = new SimpleSpanProcessor(exporter);
 const propagator = new CloudPropagator();
 
-const exporter = new TraceExporter();
-
-provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
-
-provider.register({ propagator });
+provider.addSpanProcessor(processor);
 
 registerInstrumentations({
   instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
 });
+
+provider.register({ propagator });
 
 const tracer = trace.getTracer(serviceName);
 
