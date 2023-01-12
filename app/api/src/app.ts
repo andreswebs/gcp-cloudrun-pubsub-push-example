@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(logger);
 
 app.get('/health', (_req, res) => {
-  res.status(204).send();
+  res.status(200).json({ msg: 'healthy' });
 });
 
 app.get('/msg', query('msg').trim().escape(), async (req, res, next) => {
@@ -26,6 +26,10 @@ app.get('/msg', query('msg').trim().escape(), async (req, res, next) => {
   } catch (e) {
     next(new HTTPError(500, `${e.name}: ${e.message}`, { expose: true }));
   }
+});
+
+app.get('/', (_req, res) => {
+  res.status(204).end();
 });
 
 app.use(notFound);

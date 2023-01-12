@@ -14,7 +14,11 @@ app.use(express.json());
 app.use(logger);
 
 app.get('/health', (_req, res) => {
-  res.status(204).send();
+  res.status(200).json({ msg: 'healthy' });
+});
+
+app.get('/', (_req, res) => {
+  res.status(204).end();
 });
 
 app.post('/', pubsubContext, async (req, res, next) => {
@@ -52,7 +56,7 @@ app.post('/', pubsubContext, async (req, res, next) => {
       attributes: message.attributes,
     });
 
-    res.status(204).send();
+    res.status(204).end();
   } catch (e) {
     next(new HTTPError(500, `${e.name}: ${e.message}`));
   }

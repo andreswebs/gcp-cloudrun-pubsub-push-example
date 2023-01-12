@@ -1,4 +1,6 @@
 ---
+name: example-app
+
 services:
 
   api:

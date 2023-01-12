@@ -26,7 +26,7 @@ async function sleep(waitMilliseconds: number) {
  */
 async function saveMessage(data: MessageSchema) {
   await db.connection;
-  console.log(`[saveMessage]:\n${JSON.stringify(data, null, 2)}`);
+  console.log(JSON.stringify(data));
   const res = await db.Message.create(data);
   const query = db.Message.findById(res._id);
 
