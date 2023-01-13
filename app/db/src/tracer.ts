@@ -5,17 +5,12 @@ import {
   DiagConsoleLogger,
   DiagLogLevel,
   trace,
-  Attributes,
-  SpanKind,
 } from '@opentelemetry/api';
 
 import {
+  BatchSpanProcessor,
   // ConsoleSpanExporter,
-  SimpleSpanProcessor,
-  // BatchSpanProcessor,
-  AlwaysOnSampler,
-  Sampler,
-  SamplingDecision,
+  // SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base';
 
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -26,70 +21,44 @@ import {
 } from '@opentelemetry/sdk-trace-node';
 
 import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 import {
-  SemanticResourceAttributes,
-  SemanticAttributes,
-} from '@opentelemetry/semantic-conventions';
+  HttpInstrumentation,
+  IgnoreIncomingRequestFunction,
+} from '@opentelemetry/instrumentation-http';
 
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { MongooseInstrumentation } from 'opentelemetry-instrumentation-mongoose';
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
 import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
 
-type FilterFunction = (
-  spanName: string,
-  spanKind: SpanKind,
-  attributes: Attributes
-) => boolean;
-
-function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
-  return {
-    shouldSample(ctx, tid, spanName, spanKind, attr, links) {
-      if (!filterFn(spanName, spanKind, attr)) {
-        return { decision: SamplingDecision.NOT_RECORD };
-      }
-      return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
-    },
-    toString() {
-      return `FilterSampler(${parent.toString()})`;
-    },
-  };
-}
-
-function ignoreHealthCheck(
-  _spanName: string,
-  spanKind: SpanKind,
-  attributes: Attributes
-) {
-  return (
-    spanKind !== SpanKind.SERVER ||
-    attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
-  );
-}
-
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
-
-const propagator = new CloudPropagator();
 
 const tracerConfig: NodeTracerConfig = {
   resource: new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
   }),
-  sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
 };
 
 const provider = new NodeTracerProvider(tracerConfig);
 const exporter = new TraceExporter();
-// const processor = new BatchSpanProcessor(exporter);
-const processor = new SimpleSpanProcessor(exporter);
+const processor = new BatchSpanProcessor(exporter);
+// const processor = new SimpleSpanProcessor(exporter);
+const propagator = new CloudPropagator();
 
 provider.addSpanProcessor(processor);
 
+const ignorePaths: IgnoreIncomingRequestFunction = function ignorePaths(req) {
+  const regex = /^\/(health*|computeMetadata*)$/;
+  return !!req.url.match(regex);
+};
+
 registerInstrumentations({
   instrumentations: [
-    new HttpInstrumentation(),
+    new HttpInstrumentation({
+      ignoreIncomingRequestHook: ignorePaths,
+    }),
     new ExpressInstrumentation(),
     new MongooseInstrumentation(),
   ],

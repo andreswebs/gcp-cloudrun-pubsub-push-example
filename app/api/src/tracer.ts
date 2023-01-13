@@ -5,16 +5,12 @@ import {
   DiagConsoleLogger,
   DiagLogLevel,
   trace,
-  Attributes,
-  SpanKind,
 } from '@opentelemetry/api';
 
 import {
-  // SimpleSpanProcessor,
   BatchSpanProcessor,
-  AlwaysOnSampler,
-  Sampler,
-  SamplingDecision,
+  // ConsoleSpanExporter,
+  // SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base';
 
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -26,47 +22,16 @@ import {
 
 import { Resource } from '@opentelemetry/resources';
 
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+
 import {
-  SemanticResourceAttributes,
-  SemanticAttributes,
-} from '@opentelemetry/semantic-conventions';
+  HttpInstrumentation,
+  IgnoreIncomingRequestFunction,
+} from '@opentelemetry/instrumentation-http';
 
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
 import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
-
-type FilterFunction = (
-  spanName: string,
-  spanKind: SpanKind,
-  attributes: Attributes
-) => boolean;
-
-function filterSampler(filterFn: FilterFunction, parent: Sampler): Sampler {
-  return {
-    shouldSample(ctx, tid, spanName, spanKind, attr, links) {
-      if (!filterFn(spanName, spanKind, attr)) {
-        return { decision: SamplingDecision.NOT_RECORD };
-      }
-      return parent.shouldSample(ctx, tid, spanName, spanKind, attr, links);
-    },
-    toString() {
-      return `FilterSampler(${parent.toString()})`;
-    },
-  };
-}
-
-function ignoreHealthCheck(
-  _spanName: string,
-  spanKind: SpanKind,
-  attributes: Attributes
-) {
-  return (
-    spanKind !== SpanKind.SERVER ||
-    attributes[SemanticAttributes.HTTP_ROUTE] !== '/health'
-  );
-}
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 
@@ -74,7 +39,6 @@ const tracerConfig: NodeTracerConfig = {
   resource: new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
   }),
-  sampler: filterSampler(ignoreHealthCheck, new AlwaysOnSampler()),
 };
 
 const provider = new NodeTracerProvider(tracerConfig);
@@ -85,8 +49,18 @@ const propagator = new CloudPropagator();
 
 provider.addSpanProcessor(processor);
 
+const ignorePaths: IgnoreIncomingRequestFunction = function ignorePaths(req) {
+  const regex = /^\/(health*|computeMetadata*)$/;
+  return !!req.url.match(regex);
+};
+
 registerInstrumentations({
-  instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
+  instrumentations: [
+    new HttpInstrumentation({
+      ignoreIncomingRequestHook: ignorePaths,
+    }),
+    new ExpressInstrumentation(),
+  ],
 });
 
 provider.register({ propagator });
