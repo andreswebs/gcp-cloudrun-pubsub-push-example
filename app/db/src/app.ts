@@ -13,18 +13,20 @@ const app = express();
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
-  res.status(200).json({ msg: 'healthy' });
+  return res.status(200).json({ msg: 'healthy' });
 });
 
 app.use(logger);
 
 app.post('/', pubsubContext, async (req, res, next) => {
   if (!req.body) {
-    next(new HTTPError(400, 'no Pub/Sub message received', { expose: true }));
+    return next(
+      new HTTPError(400, 'no Pub/Sub message received', { expose: true })
+    );
   }
 
   if (!req.body.message) {
-    next(
+    return next(
       new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
     );
   }
@@ -41,7 +43,7 @@ app.post('/', pubsubContext, async (req, res, next) => {
     );
 
     if (!data) {
-      next(
+      return next(
         new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
       );
     }
@@ -53,14 +55,14 @@ app.post('/', pubsubContext, async (req, res, next) => {
       attributes: message.attributes,
     });
 
-    res.status(204).send();
+    return res.status(204).send();
   } catch (e) {
-    next(new HTTPError(500, `${e.name}: ${e.message}`));
+    return next(new HTTPError(500, `${e.name}: ${e.message}`));
   }
 });
 
 app.get('/', (_req, res) => {
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 app.use(notFound);

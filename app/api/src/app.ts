@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
-  res.status(200).json({ msg: 'healthy' });
+  return res.status(200).json({ msg: 'healthy' });
 });
 
 app.use(logger);
@@ -23,14 +23,16 @@ app.get('/msg', query('msg').trim().escape(), async (req, res, next) => {
   const msg = { msg: req.query.msg, luck };
   try {
     await publishMessage(JSON.stringify(msg));
-    res.json(msg);
+    return res.json(msg);
   } catch (e) {
-    next(new HTTPError(500, `${e.name}: ${e.message}`, { expose: true }));
+    return next(
+      new HTTPError(500, `${e.name}: ${e.message}`, { expose: true })
+    );
   }
 });
 
 app.get('/', (_req, res) => {
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 app.use(notFound);

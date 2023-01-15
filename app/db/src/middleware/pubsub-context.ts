@@ -15,14 +15,14 @@ function pubsubContext(req: Request, _res: Response, next: NextFunction) {
       const ctx = trace.setSpanContext(context.active(), spanContext);
       tracer.startActiveSpan('pubsub message', {}, ctx, (span) => {
         req.app.locals.opentelemetry = { span };
-        next();
+        return next();
       });
     }
   } catch (e) {
-    console.error(e);
+    console.error(JSON.stringify({ error: `${e.name}: ${e.message}` }));
   }
 
-  next();
+  return next();
 }
 
 export default pubsubContext;
