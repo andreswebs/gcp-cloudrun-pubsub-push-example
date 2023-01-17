@@ -6,9 +6,9 @@
   "scripts": {
     "local:ts": "npx ts-node src/app.ts",
     "build": "npx rimraf ./dist/* && npx tsc",
-    "watch": "tsc -w",
-    "lint": "eslint . --ext .js,.ts",
-    "lint:fix": "eslint . --ext .js,.ts --fix"
+    "watch": "npx tsc -w",
+    "lint": "npx eslint . --ext .js,.ts",
+    "lint:fix": "npx eslint . --ext .js,.ts --fix"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +20,7 @@
     "@opentelemetry/context-async-hooks": "^1.9.0",
     "@opentelemetry/instrumentation-express": "^0.32.0",
     "@opentelemetry/instrumentation-http": "^0.35.0",
+    "@opentelemetry/instrumentation-mongoose": "^0.32.0",
     "@opentelemetry/resource-detector-gcp": "^0.27.4",
     "@opentelemetry/resources": "^1.9.0",
     "@opentelemetry/sdk-node": "^0.35.0",
@@ -27,20 +28,19 @@
     "@opentelemetry/sdk-trace-node": "^1.9.0",
     "@opentelemetry/semantic-conventions": "^1.9.0",
     "express": "^4.18.2",
-    "mongoose": "^6.8.3",
-    "opentelemetry-instrumentation-mongoose": "^0.34.0"
+    "mongoose": "^6.8.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.15",
     "@types/node": "^18.11.18",
-    "@typescript-eslint/eslint-plugin": "^5.48.1",
-    "@typescript-eslint/parser": "^5.48.1",
-    "eslint": "^8.31.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "eslint": "^8.32.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-typescript": "^3.5.3",
-    "eslint-plugin-import": "^2.27.4",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.2",
+    "prettier": "^2.8.3",
     "typescript": "^4.9.4"
   }
 }

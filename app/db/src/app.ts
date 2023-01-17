@@ -18,52 +18,53 @@ app.get('/health', (_req, res) => {
 
 app.use(logger);
 
-app.post('/', pubsubContext, async (req, res, next) => {
-  if (!req.body) {
-    return next(
-      new HTTPError(400, 'no Pub/Sub message received', { expose: true })
-    );
-  }
+app
+  .route('/')
+  .post(pubsubContext, async (req, res, next) => {
+    if (!req.body) {
+      return next(
+        new HTTPError(400, 'no Pub/Sub message received', { expose: true })
+      );
+    }
 
-  if (!req.body.message) {
-    return next(
-      new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
-    );
-  }
-
-  const body: PubSubReqBody = req.body;
-
-  const message = body.message;
-
-  try {
-    const data = JSON.parse(
-      message.data
-        ? Buffer.from(message.data, 'base64').toString().trim()
-        : null
-    );
-
-    if (!data) {
+    if (!req.body.message) {
       return next(
         new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
       );
     }
 
-    await saveMessage({
-      msgId: message.messageId,
-      msg: data.msg,
-      luck: parseInt(data.luck),
-      attributes: message.attributes,
-    });
+    const body: PubSubReqBody = req.body;
 
+    const message = body.message;
+
+    try {
+      const data = JSON.parse(
+        message.data
+          ? Buffer.from(message.data, 'base64').toString().trim()
+          : null
+      );
+
+      if (!data) {
+        return next(
+          new HTTPError(400, 'invalid Pub/Sub message format', { expose: true })
+        );
+      }
+
+      await saveMessage({
+        msgId: message.messageId,
+        msg: data.msg,
+        luck: parseInt(data.luck),
+        attributes: message.attributes,
+      });
+
+      return res.status(204).send();
+    } catch (e) {
+      return next(new HTTPError(500, `${e.name}: ${e.message}`));
+    }
+  })
+  .get((_req, res) => {
     return res.status(204).send();
-  } catch (e) {
-    return next(new HTTPError(500, `${e.name}: ${e.message}`));
-  }
-});
-
-app.get('/', (_req, res) => {
-  return res.status(204).send();
-});
+  });
 
 app.use(notFound);
 app.use(errorHandler);

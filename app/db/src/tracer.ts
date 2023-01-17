@@ -29,7 +29,7 @@ import {
 } from '@opentelemetry/instrumentation-http';
 
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-import { MongooseInstrumentation } from 'opentelemetry-instrumentation-mongoose';
+import { MongooseInstrumentation } from '@opentelemetry/instrumentation-mongoose';
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
 import { CloudPropagator } from '@google-cloud/opentelemetry-cloud-trace-propagator';
 

@@ -90,7 +90,7 @@ function handleSignals(server: Server) {
   const shutdown = async (signal: string, value: number) => {
     await provider.shutdown();
     server.close(() => {
-      console.log(`stopped by ${signal}`);
+      console.log(JSON.stringify({ msg: `stopped by ${signal}` }));
       process.exit(128 + value);
     });
   };
@@ -110,8 +110,8 @@ function getSpanContext(message: Message): SpanContext | undefined {
   if (message.attributes) {
     try {
       return JSON.parse(message.attributes[otelPubSubAttribute]);
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(JSON.stringify({ error: `${e.name}: ${e.message}` }));
       return;
     }
   }
