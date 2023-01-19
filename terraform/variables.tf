@@ -113,3 +113,9 @@ variable "mongodb_tls_key_password_secret_version" {
   description = "Secret version"
   default     = "1"
 }
+
+variable "mongodb_tls_local_enabled" {
+  type        = string
+  description = "(Optional) Enable local TLS settings?"
+  default     = false
+}

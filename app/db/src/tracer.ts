@@ -1,4 +1,4 @@
-import { serviceName } from './constants';
+import { serviceName, otelEnabled } from './constants';
 
 import {
   diag,
@@ -64,7 +64,9 @@ registerInstrumentations({
   ],
 });
 
-provider.register({ propagator });
+if (otelEnabled) {
+  provider.register({ propagator });
+}
 
 const tracer = trace.getTracer(serviceName);
 

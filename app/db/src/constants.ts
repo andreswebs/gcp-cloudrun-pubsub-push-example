@@ -7,6 +7,14 @@ const signals = {
 };
 
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
+
+const otelEnabled: boolean = (() => {
+  if (String(process.env.APP_OTEL_ENABLED).toLowerCase() === 'false') {
+    return false;
+  }
+  return process.env.APP_OTEL_ENABLED ? true : false;
+})();
+
 const pull = process.env.PULL ? true : false;
 const timeout = process.env.TIMEOUT_SECONDS
   ? parseInt(process.env.TIMEOUT_SECONDS, 10)
@@ -23,6 +31,13 @@ const mongoDatabase = process.env.MONGO_DATABASE;
 const mongoTLSCA = process.env.MONGO_TLS_CA_CRT;
 const mongoTLSKey = process.env.MONGO_TLS_KEY;
 const mongoTLSKeyPass = process.env.MONGO_TLS_KEY_PASSWORD;
+
+const mongoTLSLocalEnabled: boolean = (() => {
+  if (String(process.env.MONGO_TLS_LOCAL_ENABLED).toLowerCase() === 'false') {
+    return false;
+  }
+  return process.env.MONGO_TLS_LOCAL_ENABLED ? true : false;
+})();
 
 const mongoReplicaSet = process.env.MONGO_REPLICA_SET;
 
@@ -48,6 +63,10 @@ if (pull && !subscriptionNameOrId) {
 
 const mongoTLSOpts = (() => {
   let tlsOpts = '';
+
+  if (!mongoTLSLocalEnabled) {
+    return tlsOpts;
+  }
 
   if (mongoTLSCA && mongoTLSKey) {
     tlsOpts += `&tls=true&tlsCAFile=${mongoTLSCA}&tlsCertificateKeyFile=${mongoTLSKey}`;
@@ -80,5 +99,6 @@ export {
   timeout,
   mongoURI,
   serviceName,
+  otelEnabled,
   otelPubSubAttribute,
 };

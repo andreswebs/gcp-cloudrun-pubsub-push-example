@@ -135,6 +135,11 @@ resource "google_cloud_run_service" "db" {
           }
         }
 
+        env {
+          name  = "MONGO_TLS_LOCAL_ENABLED"
+          value = var.mongodb_tls_local_enabled
+        }
+
         ## NOTE: secrets can't be mounted on the same dir
         ## https://cloud.google.com/run/docs/configuring/secrets#disallowed_paths_and_limitations
         volume_mounts {
@@ -189,16 +194,16 @@ resource "google_service_account" "db_cloud_run_invoker" {
   display_name = "Cloud Run Pub/Sub Invoker"
 }
 
-resource "google_project_iam_binding" "db_cloud_run_invoker" {
+resource "google_project_iam_member" "db_cloud_run_invoker" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
-  members = ["serviceAccount:${google_service_account.db_cloud_run_invoker.email}"]
+  member = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
 
-resource "google_cloud_run_service_iam_binding" "db_cloud_run_invoker" {
+resource "google_cloud_run_service_iam_member" "db_cloud_run_invoker" {
   location = google_cloud_run_service.db.location
   project  = google_cloud_run_service.db.project
   service  = google_cloud_run_service.db.name
   role     = "roles/run.invoker"
-  members  = ["serviceAccount:${google_service_account.db_cloud_run_invoker.email}"]
+  member  = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
