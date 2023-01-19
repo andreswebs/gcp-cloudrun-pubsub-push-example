@@ -4,7 +4,7 @@ import { context, trace, SpanStatusCode } from '@opentelemetry/api';
 import { HTTPError } from '../errors';
 
 /**
- * Forward known errors back to client, or default to 500 Internal Server Error
+ * Log errors and forward exposable info back to client
  */
 function errorHandler(
   err: Error | HTTPError,
@@ -12,15 +12,27 @@ function errorHandler(
   res: Response,
   _next: NextFunction // eslint-disable-line @typescript-eslint/no-unused-vars
 ) {
-  console.error(JSON.stringify({ error: `${err.name}: ${err.message}` }));
-
   const isHTTPError = err instanceof HTTPError;
   const status = isHTTPError ? err.status : 500;
+
   const msg = isHTTPError
     ? err.expose
       ? err.message
       : STATUS_CODES[err.status]
     : STATUS_CODES[500];
+
+  const cause = isHTTPError ? (err.expose ? err.cause : undefined) : undefined;
+
+  const errorResponse = {
+    error: `${err.name}: ${msg}`,
+    cause,
+  };
+
+  const errorLog = {
+    error: `${err.name}: ${err.message}`,
+    cause: err.cause,
+    stack: err.stack,
+  };
 
   try {
     // OTel: sample all errors
@@ -34,13 +46,19 @@ function errorHandler(
       currentSpan.setStatus({ code: SpanStatusCode.ERROR });
     }
   } catch (e) {
-    console.error(JSON.stringify({ error: `${e.name}: ${e.message}` }));
+    console.error(
+      JSON.stringify({
+        error: `${e.name}: ${e.message}`,
+        stack: e.stack,
+      })
+    );
   }
 
+  // error log
+  console.error(JSON.stringify(errorLog));
+
   // error response
-  return res.status(status).json({
-    error: msg,
-  });
+  return res.status(status).json(errorResponse);
 }
 
 export default errorHandler;

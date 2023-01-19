@@ -8,5 +8,5 @@ locals {
     "run.googleapis.com/vpc-access-connector" = var.serverless_connector_name
     "run.googleapis.com/vpc-access-egress"    = local.serverless_connector_egress
   }
-  
+
 }
