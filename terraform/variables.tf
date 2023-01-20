@@ -6,13 +6,13 @@ variable "project" {
 variable "region" {
   type        = string
   description = "Compute region"
-  default     = "europe-west4"
+  default     = null
 }
 
 variable "zone" {
   type        = string
   description = "Compute zone"
-  default     = "europe-west4-a"
+  default     = null
 }
 
 variable "serverless_connector_name" {

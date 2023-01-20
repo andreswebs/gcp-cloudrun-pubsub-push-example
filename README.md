@@ -23,7 +23,6 @@ The build script requires a few environment variables to be set:
 
 ```sh
 export CLOUDSDK_CORE_PROJECT="<gcp project id>"
-export CONTAINER_REPO="<name of GCP container repository, e.g. 'default'>"
 ```
 
 Build API:
@@ -54,6 +53,8 @@ The following TF_VARs are required:
   Artifact Registry)
 - `container_image_db`: container image tag for the DB application (in GCP
   Artifact Registry)
+- `mongodb_host`: MongoDB hostname (also see the other declared `mongodb_*`
+  variables to configure the full connection string)
 
 To deploy, run:
 
