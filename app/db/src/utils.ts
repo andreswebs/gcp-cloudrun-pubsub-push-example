@@ -106,8 +106,7 @@ function handleSignals(server: Server) {
  * Get OTel span context from Google Cloud Pub/Sub message attribute
  */
 function getSpanContext(message: Message): SpanContext | undefined {
-  const otelPubSubAttribute = 'googclient_OpenTelemetrySpanContext';
-  if (message.attributes) {
+  if (message.attributes && message.attributes[otelPubSubAttribute]) {
     try {
       return JSON.parse(message.attributes[otelPubSubAttribute]);
     } catch (e) {

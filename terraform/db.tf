@@ -140,6 +140,11 @@ resource "google_cloud_run_service" "db" {
           value = var.mongodb_tls_local_enabled
         }
 
+        env {
+          name  = "APP_OTEL_ENABLED"
+          value = true
+        }
+
         ## NOTE: secrets can't be mounted on the same dir
         ## https://cloud.google.com/run/docs/configuring/secrets#disallowed_paths_and_limitations
         volume_mounts {

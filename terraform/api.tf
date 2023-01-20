@@ -42,6 +42,11 @@ resource "google_cloud_run_service" "api" {
           value = google_pubsub_topic.api_events.name
         }
 
+        env {
+          name  = "APP_OTEL_ENABLED"
+          value = true
+        }
+
       }
     }
   }
