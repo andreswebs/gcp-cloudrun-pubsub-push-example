@@ -1,4 +1,4 @@
-# Serverless GCP Pub/Sub Example
+# GCP Cloud Run Pub/Sub Example
 
 This is an example serverless application running on GCP Cloud Run and using
 MongoDB as a database:
