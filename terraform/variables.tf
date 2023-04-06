@@ -17,7 +17,7 @@ variable "zone" {
 
 variable "serverless_connector_name" {
   type        = string
-  description = "Name of serverless connector to use"
+  description = "Name of an existing serverless connector to use"
   default     = null
 }
 
@@ -43,7 +43,7 @@ variable "mongodb_username" {
   default     = "app"
 }
 
-variable "mongodb_password_secret" {
+variable "mongodb_password_secret_name" {
   type        = string
   description = "Name of GCP secret containing MongoDB password"
   default     = "mongodb_app_password"
@@ -52,7 +52,7 @@ variable "mongodb_password_secret" {
 variable "mongodb_password_secret_version" {
   type        = string
   description = "Secret version"
-  default     = "1"
+  default     = "latest"
 }
 
 variable "mongodb_host" {
@@ -90,19 +90,19 @@ variable "mongodb_tls_dir" {
   default     = "/etc/mongodb-tls"
 }
 
-variable "mongodb_tls_ca_crt_secret" {
+variable "mongodb_tls_ca_crt_secret_name" {
   type        = string
   description = "Name of secret containing CA certificate"
   default     = "ca_crt"
 }
 
-variable "mongodb_tls_key_secret" {
+variable "mongodb_tls_key_secret_name" {
   type        = string
   description = "Name of secret containing TLS certificate and key"
   default     = "tls_pem"
 }
 
-variable "mongodb_tls_key_password_secret" {
+variable "mongodb_tls_key_password_secret_name" {
   type        = string
   description = "Name of secret containing TLS private key"
   default     = "tls_key_pw"
@@ -111,7 +111,7 @@ variable "mongodb_tls_key_password_secret" {
 variable "mongodb_tls_key_password_secret_version" {
   type        = string
   description = "Secret version"
-  default     = "1"
+  default     = "latest"
 }
 
 variable "mongodb_tls_local_enabled" {

@@ -3,20 +3,21 @@ resource "google_service_account" "db_cloud_run" {
   display_name = "db"
 }
 
+/* secrets */
 data "google_secret_manager_secret" "mongodb_password" {
-  secret_id = var.mongodb_password_secret
+  secret_id = var.mongodb_password_secret_name
 }
 
 data "google_secret_manager_secret" "mongodb_tls_ca_crt" {
-  secret_id = var.mongodb_tls_ca_crt_secret
+  secret_id = var.mongodb_tls_ca_crt_secret_name
 }
 
 data "google_secret_manager_secret" "mongodb_tls_key" {
-  secret_id = var.mongodb_tls_key_secret
+  secret_id = var.mongodb_tls_key_secret_name
 }
 
 data "google_secret_manager_secret" "mongodb_tls_key_password" {
-  secret_id = var.mongodb_tls_key_password_secret
+  secret_id = var.mongodb_tls_key_password_secret_name
 }
 
 resource "google_secret_manager_secret_iam_member" "mongodb_password_db_cloud_run" {
@@ -51,12 +52,21 @@ locals {
 
   mongob_tls_ca_crt = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_ca}/${local.mongodb_file_ca_crt}"
   mongodb_tls_key   = "${var.mongodb_tls_dir}/${local.mongodb_volume_suffix_pem}/${local.mongodb_file_tls_pem}"
+
+
 }
 
 resource "google_cloud_run_service" "db" {
   provider = google-beta
   name     = "db"
   location = var.region
+
+  metadata {
+    annotations = {
+      "run.googleapis.com/ingress" = "internal"
+    }
+  }
+
   template {
 
     metadata {
@@ -202,7 +212,7 @@ resource "google_service_account" "db_cloud_run_invoker" {
 resource "google_project_iam_member" "db_cloud_run_invoker" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
-  member = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
+  member  = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
 
 resource "google_cloud_run_service_iam_member" "db_cloud_run_invoker" {
@@ -210,5 +220,5 @@ resource "google_cloud_run_service_iam_member" "db_cloud_run_invoker" {
   project  = google_cloud_run_service.db.project
   service  = google_cloud_run_service.db.name
   role     = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
+  member   = "serviceAccount:${google_service_account.db_cloud_run_invoker.email}"
 }
