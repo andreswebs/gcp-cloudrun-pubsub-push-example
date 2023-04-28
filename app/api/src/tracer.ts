@@ -50,7 +50,7 @@ const propagator = new CloudPropagator();
 provider.addSpanProcessor(processor);
 
 const ignorePaths: IgnoreIncomingRequestFunction = function ignorePaths(req) {
-  const regex = /^\/(health*|computeMetadata*)$/;
+  const regex = /\/(health|computeMetadata).*$/;
   return !!req.url.match(regex);
 };
 
