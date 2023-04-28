@@ -28,15 +28,17 @@ export CLOUDSDK_CORE_PROJECT="<gcp project id>"
 Build API:
 
 ```sh
-cd apps/api
+pushd app/api
 ../../scripts/gcloud-build.sh api
+popd
 ```
 
 Build DB:
 
 ```sh
-cd apps/db
+pushd app/db
 ../../scripts/gcloud-build.sh db
+popd
 ```
 
 Use the built image tags to populate the relevant Terraform variables (see
